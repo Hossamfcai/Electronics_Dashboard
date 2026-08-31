@@ -1,9 +1,8 @@
 import "./App.css";
+import AppRouter from "./router/AppRouter";
 
 function App() {
-  return (
-    <div className="p-8 flex flex-col gap-4 items-start bg-slate-50 min-h-screen"></div>
-  );
+  return <AppRouter />;
 }
 
 export default App;
