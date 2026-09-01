@@ -77,7 +77,7 @@ export default function ProductList() {
       </div>
 
       {/* Products Toolbar */}
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         {/* Category Sort */}
         <div className="flex items-center gap-3">
           <label
@@ -116,7 +116,7 @@ export default function ProductList() {
         {filteredProducts?.map((product) => (
           <div
             key={product.id}
-            className={`overflow-hidden rounded-lg shadow-sm ring-1 transition ${
+            className={`overflow-hidden rounded-lg shadow-sm ring-1 transition-all duration-300 hover:-translate-y-3 hover:shadow-lg ${
               product.stock > 0
                 ? "bg-surface-container-lowest ring-outline-variant/40"
                 : "bg-error-container/30 ring-error/40"
@@ -193,7 +193,7 @@ export default function ProductList() {
                 {/* Edit */}
                 <button
                   type="button"
-                  className="flex h-9 w-9 cursor-default items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-primary"
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-primary transition-all duration-200 hover:bg-primary hover:text-on-primary hover:scale-105"
                 >
                   <i className="fa-solid fa-pen text-sm"></i>
                 </button>
@@ -202,7 +202,7 @@ export default function ProductList() {
                 <button
                   type="button"
                   onClick={() => handleDelete(product)}
-                  className="flex h-9 w-9 cursor-default items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-error"
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-error transition-all duration-200 hover:bg-error hover:text-on-error hover:scale-105"
                 >
                   <i className="fa-solid fa-trash text-sm"></i>
                 </button>
