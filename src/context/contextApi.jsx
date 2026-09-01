@@ -12,9 +12,9 @@ export default function ContextApi({ children }) {
         "https://electronics-dashboard-backend.vercel.app/api/products"
       );
 
-      console.log(response.data);
+      console.log(response.data.data);
 
-      setProducts(response.data);
+      setProducts(response.data.data);
     } catch (error) {
       console.log(error);
     }
