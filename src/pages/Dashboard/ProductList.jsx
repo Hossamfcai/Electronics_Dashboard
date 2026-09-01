@@ -1,10 +1,12 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/ContextApi.jsx";
 import Swal from "sweetalert2";
 
 export default function ProductList() {
   const { products, deleteProduct } = useContext(Context);
+
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   async function handleDelete(product) {
     const result = await Swal.fire({
@@ -38,6 +40,23 @@ export default function ProductList() {
     }
   }
 
+  const categories = [
+    "All",
+    ...new Set(
+      products
+        ?.map((product) => product.category)
+        .filter((category) => category),
+    ),
+    "No Category",
+  ];
+
+  const filteredProducts =
+    selectedCategory === "All"
+      ? products
+      : selectedCategory === "No Category"
+        ? products?.filter((product) => !product.category)
+        : products?.filter((product) => product.category === selectedCategory);
+
   return (
     <div className="min-h-screen bg-surface px-6 py-8 font-body">
       {/* Header */}
@@ -57,9 +76,44 @@ export default function ProductList() {
         </span>
       </div>
 
+      {/* Products Toolbar */}
+      <div className="mb-6 flex items-center justify-between gap-4">
+        {/* Category Sort */}
+        <div className="flex items-center gap-3">
+          <label
+            htmlFor="category"
+            className="text-label-lg text-on-surface-variant"
+          >
+            Sort by:
+          </label>
+
+          <select
+            id="category"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="rounded-md border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-body-sm text-on-surface outline-none focus:border-primary"
+          >
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Add Product */}
+        <Link
+          to="/dashboard/addproduct"
+          className="flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-label-lg text-on-primary transition hover:bg-primary-container"
+        >
+          <i className="fa-solid fa-plus"></i>
+          Add New Product
+        </Link>
+      </div>
+
       {/* Products Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {products?.map((product) => (
+        {filteredProducts?.map((product) => (
           <div
             key={product.id}
             className={`overflow-hidden rounded-lg shadow-sm ring-1 transition ${
@@ -156,7 +210,7 @@ export default function ProductList() {
 
               {/* View Details */}
               <Link
-                to={`/productdetails/${product.id}`}
+                to={`/dashboard/productdetails/${product.id}`}
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-label-lg text-on-primary transition hover:bg-primary-container"
               >
                 View Product Details
