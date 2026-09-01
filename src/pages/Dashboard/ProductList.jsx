@@ -62,7 +62,11 @@ export default function ProductList() {
         {products?.map((product) => (
           <div
             key={product.id}
-            className="overflow-hidden rounded-lg bg-surface-container-lowest shadow-sm ring-1 ring-outline-variant/40"
+            className={`overflow-hidden rounded-lg shadow-sm ring-1 transition ${
+              product.stock > 0
+                ? "bg-surface-container-lowest ring-outline-variant/40"
+                : "bg-error-container/30 ring-error/40"
+            }`}
           >
             {/* Image */}
             <div className="h-52 w-full overflow-hidden bg-surface-container">
