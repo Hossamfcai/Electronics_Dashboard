@@ -5,12 +5,15 @@ import { BrowserRouter } from "react-router-dom";
 
 import "./index.css";
 import App from "./App.jsx";
+import ContextApi from "./context/ContextApi.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <MantineProvider>
       <BrowserRouter>
-        <App />
+        <ContextApi>
+          <App />
+        </ContextApi>
       </BrowserRouter>
     </MantineProvider>
   </StrictMode>,
