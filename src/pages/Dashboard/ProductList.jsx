@@ -1,9 +1,42 @@
 import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/ContextApi.jsx";
+import Swal from "sweetalert2";
 
 export default function ProductList() {
-  const { products } = useContext(Context);
+  const { products, deleteProduct } = useContext(Context);
+
+  async function handleDelete(product) {
+    const result = await Swal.fire({
+      title: "Delete Product",
+      text: `Are you sure you want to delete "${product.name}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Delete Product",
+      cancelButtonText: "Cancel",
+      reverseButtons: true,
+    });
+
+    if (result.isConfirmed) {
+      const success = await deleteProduct(product.id);
+
+      if (success) {
+        await Swal.fire({
+          title: "Deleted!",
+          text: `"${product.name}" has been deleted successfully.`,
+          icon: "success",
+          confirmButtonText: "OK",
+        });
+      } else {
+        await Swal.fire({
+          title: "Error!",
+          text: "Something went wrong while deleting the product.",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-surface px-6 py-8 font-body">
@@ -110,6 +143,7 @@ export default function ProductList() {
                 {/* Delete */}
                 <button
                   type="button"
+                  onClick={() => handleDelete(product)}
                   className="flex h-9 w-9 cursor-default items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-error"
                 >
                   <i className="fa-solid fa-trash text-sm"></i>

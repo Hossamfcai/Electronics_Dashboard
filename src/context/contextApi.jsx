@@ -9,14 +9,30 @@ export default function ContextApi({ children }) {
   async function getAllProducts() {
     try {
       const response = await axios.get(
-        "https://electronics-dashboard-backend.vercel.app/api/products"
+        "http://localhost:5000/api/products",
       );
-
-      console.log(response.data.data);
 
       setProducts(response.data.data);
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  async function deleteProduct(id) {
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/products/${id}`,
+      );
+
+      // Remove deleted product from state
+      setProducts((prevProducts) =>
+        prevProducts.filter((product) => product.id !== id),
+      );
+
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
     }
   }
 
@@ -25,7 +41,12 @@ export default function ContextApi({ children }) {
   }, []);
 
   return (
-    <Context.Provider value={{ products }}>
+    <Context.Provider
+      value={{
+        products,
+        deleteProduct,
+      }}
+    >
       {children}
     </Context.Provider>
   );
