@@ -191,12 +191,12 @@ export default function ProductList() {
               {/* Actions */}
               <div className="mt-4 flex items-center gap-2">
                 {/* Edit */}
-                <button
-                  type="button"
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-primary transition-all duration-200 hover:bg-primary hover:text-on-primary hover:scale-105"
+                <Link
+                  to={`/dashboard/editproduct/${product.id}`}
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-primary transition-all duration-200 hover:scale-105 hover:bg-primary hover:text-on-primary"
                 >
                   <i className="fa-solid fa-pen text-sm"></i>
-                </button>
+                </Link>
 
                 {/* Delete */}
                 <button

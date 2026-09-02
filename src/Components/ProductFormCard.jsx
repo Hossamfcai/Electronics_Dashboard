@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function ProductFormCard({ onSubmit, categories = [] }) {
+export default function ProductFormCard({
+  onSubmit,
+  categories = [],
+  initialData = null,
+  isEdit = false,
+}) {
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -9,6 +14,19 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
     image: "",
     description: "",
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || "",
+        category: initialData.category || "",
+        price: initialData.price ?? "",
+        stock: initialData.stock ?? 0,
+        image: initialData.image || "",
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData]);
 
   const [errors, setErrors] = useState({});
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -82,9 +100,12 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
       category: formData.category.trim(),
       price: Number(formData.price),
       stock: Number(formData.stock),
-      image: formData.image.trim(),
       description: formData.description.trim(),
     };
+
+    if (formData.image.trim()) {
+      productData.image = formData.image.trim();
+    }
 
     onSubmit?.(productData);
   }
@@ -356,8 +377,9 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
             type="submit"
             className="rounded-md bg-primary px-5 py-2.5 text-label-lg text-on-primary transition hover:bg-primary-container"
           >
-            <i className="fa-solid fa-plus mr-2"></i>
-            Save Product
+            <i className={`fa-solid ${isEdit ? "fa-pen" : "fa-plus"} mr-2`}></i>
+
+            {isEdit ? "Save Changes" : "Save Product"}
           </button>
         </div>
       </form>

@@ -40,6 +40,35 @@ export default function ContextApi({ children }) {
     }
   }
 
+  async function updateProduct(id, productData) {
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/products/${id}`,
+        productData,
+      );
+
+      const updatedProduct = response.data.data;
+
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.id.toString() === id.toString() ? updatedProduct : product,
+        ),
+      );
+
+      return {
+        success: true,
+        data: updatedProduct,
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        success: false,
+        error,
+      };
+    }
+  }
+
   async function deleteProduct(id) {
     try {
       await axios.delete(`http://localhost:5000/api/products/${id}`);
@@ -65,6 +94,7 @@ export default function ContextApi({ children }) {
         products,
         addProduct,
         deleteProduct,
+        updateProduct,
       }}
     >
       {children}
