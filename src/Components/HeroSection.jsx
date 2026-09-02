@@ -1,6 +1,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Zap, BookOpen, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
+import heroPhoto from "../assets/HeroPhoto.png";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -58,7 +59,7 @@ export default function HeroSection() {
         <img
           alt="Premium high-end electronics and hardware components"
           className="w-full h-full object-cover"
-          src="https://lh3.googleusercontent.com/aida/AEtjO1VPjOOVkRNR7wDpgesmK4qz5P2RDmHTV1Fno0_8fVKyeqcBoCqRFLg0aWFNE-8MJ3U1LZjwt1ub6LOOQaIcn8qQUpYvQTtvByZinl3sWqPzSj-eZ3jLbkg-adFo4r4l6N6M-grpgWF28X7xwUaa0_FaFv47y5yiPibVjpaNoIzcYKvNanAPzdkevyKwXN3Rl8wqhIAvkEXlCY0EtbGt-xbp09JvmPwLkrkS8EwoHaBB66LA1vqnBcQ62CPK"
+          src={heroPhoto}
         />
         <div className="absolute inset-0 bg-surface/80 backdrop-blur-sm mix-blend-overlay"></div>
         <div className="absolute inset-0 bg-linear-to-b from-surface/50 to-surface"></div>
