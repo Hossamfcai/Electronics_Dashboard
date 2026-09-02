@@ -8,9 +8,7 @@ export default function ContextApi({ children }) {
 
   async function getAllProducts() {
     try {
-      const response = await axios.get(
-        "http://localhost:5000/api/products",
-      );
+      const response = await axios.get("http://localhost:5000/api/products");
 
       setProducts(response.data.data);
     } catch (error) {
@@ -18,13 +16,34 @@ export default function ContextApi({ children }) {
     }
   }
 
-  async function deleteProduct(id) {
+  async function addProduct(productData) {
     try {
-      await axios.delete(
-        `http://localhost:5000/api/products/${id}`,
+      const response = await axios.post(
+        "http://localhost:5000/api/products",
+        productData,
       );
 
-      // Remove deleted product from state
+      // Add the newly created product to state
+      setProducts((prevProducts) => [...prevProducts, response.data.data]);
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        success: false,
+        error,
+      };
+    }
+  }
+
+  async function deleteProduct(id) {
+    try {
+      await axios.delete(`http://localhost:5000/api/products/${id}`);
+
       setProducts((prevProducts) =>
         prevProducts.filter((product) => product.id !== id),
       );
@@ -44,6 +63,7 @@ export default function ContextApi({ children }) {
     <Context.Provider
       value={{
         products,
+        addProduct,
         deleteProduct,
       }}
     >

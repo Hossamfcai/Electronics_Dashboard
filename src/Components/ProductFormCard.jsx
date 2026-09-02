@@ -11,7 +11,6 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
   });
 
   const [errors, setErrors] = useState({});
-
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
   function handleChange(e) {
@@ -22,7 +21,6 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
       [name]: value,
     }));
 
-    // Remove error when user starts fixing the field
     setErrors((prev) => ({
       ...prev,
       [name]: "",
@@ -122,7 +120,6 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
 
         {/* Category + Price */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* Category */}
           {/* Category */}
           <div>
             <label
@@ -235,6 +232,7 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
             )}
           </div>
         </div>
+
         {/* Stock */}
         <div>
           <label
@@ -245,7 +243,6 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
           </label>
 
           <div className="flex items-center">
-            {/* Minus */}
             <button
               type="button"
               onClick={() =>
@@ -259,7 +256,6 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
               <i className="fa-solid fa-minus text-xs"></i>
             </button>
 
-            {/* Stock Number */}
             <input
               id="stock"
               name="stock"
@@ -275,7 +271,6 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
               className="h-11 w-20 border-y border-outline-variant bg-surface-container-lowest text-center text-body-sm text-on-surface outline-none focus:border-primary"
             />
 
-            {/* Plus */}
             <button
               type="button"
               onClick={() =>
@@ -300,32 +295,23 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
             Image URL
           </label>
 
-          <div className="flex gap-2">
-            <input
-              id="image"
-              name="image"
-              type="url"
-              value={formData.image}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-              className={`min-w-0 flex-1 rounded-md border bg-surface-container-lowest px-3 py-3 text-body-sm text-on-surface outline-none transition focus:border-primary ${
-                errors.image ? "border-error" : "border-outline-variant"
-              }`}
-            />
-
-            <button
-              type="button"
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-primary transition hover:bg-primary hover:text-on-primary"
-            >
-              <i className="fa-solid fa-upload text-sm"></i>
-            </button>
-          </div>
+          <input
+            id="image"
+            name="image"
+            type="url"
+            value={formData.image}
+            onChange={handleChange}
+            placeholder="https://example.com/image.jpg"
+            className={`w-full rounded-md border bg-surface-container-lowest px-3 py-3 text-body-sm text-on-surface outline-none transition focus:border-primary ${
+              errors.image ? "border-error" : "border-outline-variant"
+            }`}
+          />
 
           {errors.image ? (
             <p className="mt-1 text-body-sm text-error">{errors.image}</p>
           ) : (
             <p className="mt-1 text-body-sm text-outline">
-              Provide a high-resolution image link for the product thumbnail.
+              Please provide a valid image URL for the product thumbnail.
             </p>
           )}
         </div>
@@ -362,6 +348,17 @@ export default function ProductFormCard({ onSubmit, categories = [] }) {
               {formData.description.length}/500
             </span>
           </div>
+        </div>
+
+        {/* Save Button */}
+        <div className="flex justify-end pt-2">
+          <button
+            type="submit"
+            className="rounded-md bg-primary px-5 py-2.5 text-label-lg text-on-primary transition hover:bg-primary-container"
+          >
+            <i className="fa-solid fa-plus mr-2"></i>
+            Save Product
+          </button>
         </div>
       </form>
     </div>
