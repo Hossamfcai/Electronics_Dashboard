@@ -13,21 +13,79 @@ function ContextApiProvider({ children }) {
 
   async function getAllProducts() {
     try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/products`);
+      const response = await axios.get("http://localhost:5000/api/products");
 
-      console.log("Products fetched:", response.data);
-
-      // Backend returns { success, count, data: [...] }
-      const productsData = response.data.data || [];
-      setProducts(Array.isArray(productsData) ? productsData : []);
-      setError(null);
+      setProducts(response.data.data);
     } catch (error) {
-      console.error("Error fetching products:", error.message);
-      setError(error.message);
-      setProducts([]); // Set empty array on error
-    } finally {
-      setLoading(false);
+      console.log(error);
+    }
+  }
+
+  async function addProduct(productData) {
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/products",
+        productData,
+      );
+
+      // Add the newly created product to state
+      setProducts((prevProducts) => [...prevProducts, response.data.data]);
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        success: false,
+        error,
+      };
+    }
+  }
+
+  async function updateProduct(id, productData) {
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/products/${id}`,
+        productData,
+      );
+
+      const updatedProduct = response.data.data;
+
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.id.toString() === id.toString() ? updatedProduct : product,
+        ),
+      );
+
+      return {
+        success: true,
+        data: updatedProduct,
+      };
+    } catch (error) {
+      console.log(error);
+
+      return {
+        success: false,
+        error,
+      };
+    }
+  }
+
+  async function deleteProduct(id) {
+    try {
+      await axios.delete(`http://localhost:5000/api/products/${id}`);
+
+      setProducts((prevProducts) =>
+        prevProducts.filter((product) => product.id !== id),
+      );
+
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
     }
   }
 
@@ -38,7 +96,14 @@ function ContextApiProvider({ children }) {
   const value = { products, loading, error, getAllProducts };
 
   return (
-    <Context.Provider value={value}>
+    <Context.Provider
+      value={{
+        products,
+        addProduct,
+        deleteProduct,
+        updateProduct,
+      }}
+    >
       {children}
     </Context.Provider>
   );

@@ -8,6 +8,7 @@ import AddProduct from "../pages/Dashboard/AddProduct";
 import ErrorPage from "../pages/404ErrorPage/ErrorPage";
 import LandingPage from "../pages/landing/LandingPage";
 import DashBoardLayout from "../pages/Dashboard/DashBoardLayout";
+import EditProduct from "../pages/Dashboard/EditProduct";
 
 export default function AppRouter() {
   return (
@@ -29,6 +30,8 @@ export default function AppRouter() {
         />
 
         <Route path="AddProduct" element={<AddProduct />} />
+
+        <Route path="editproduct/:id" element={<EditProduct />} />
       </Route>
 
       <Route path="*" element={<ErrorPage />} />
