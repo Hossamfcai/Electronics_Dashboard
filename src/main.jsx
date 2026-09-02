@@ -12,9 +12,9 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <MantineProvider>
       <BrowserRouter>
-        <ContextApi>
+        <ContextApiProvider>
           <App />
-        </ContextApi>
+        </ContextApiProvider>
       </BrowserRouter>
     </MantineProvider>
   </StrictMode>,

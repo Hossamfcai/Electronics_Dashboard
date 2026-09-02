@@ -1,10 +1,15 @@
 import axios from "axios";
 import { createContext, useEffect, useState } from "react";
 
-export const Context = createContext();
+export const Context = createContext(undefined);
 
-export default function ContextApi({ children }) {
+function ContextApiProvider({ children }) {
   const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Backend API base URL from environment or default to localhost
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
   async function getAllProducts() {
     try {
@@ -88,6 +93,8 @@ export default function ContextApi({ children }) {
     getAllProducts();
   }, []);
 
+  const value = { products, loading, error, getAllProducts };
+
   return (
     <Context.Provider
       value={{
@@ -101,3 +108,5 @@ export default function ContextApi({ children }) {
     </Context.Provider>
   );
 }
+
+export default ContextApiProvider;

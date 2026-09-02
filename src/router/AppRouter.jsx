@@ -1,7 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+
 import DashBoard from "../pages/Dashboard/Dashboard";
 import ProductList from "../pages/Dashboard/ProductList";
+import ProductDetails from "../pages/Dashboard/ProductDetails";
 import AddProduct from "../pages/Dashboard/AddProduct";
+
 import ErrorPage from "../pages/404ErrorPage/ErrorPage";
 import LandingPage from "../pages/landing/LandingPage";
 import DashBoardLayout from "../pages/Dashboard/DashBoardLayout";
@@ -20,6 +23,11 @@ export default function AppRouter() {
         <Route path="Home" element={<DashBoard />} />
 
         <Route path="ProductList" element={<ProductList />} />
+
+        <Route
+          path="ProductList/:id"
+          element={<ProductDetails />}
+        />
 
         <Route path="AddProduct" element={<AddProduct />} />
 
