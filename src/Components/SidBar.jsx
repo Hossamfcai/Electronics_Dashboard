@@ -1,52 +1,75 @@
-import { LayoutDashboard, Package, PlusSquare, Cpu, X } from "lucide-react";
+import {
+  CircleHelp,
+  Cpu,
+  LayoutDashboard,
+  Package,
+  PlusSquare,
+  Settings,
+  Wifi,
+  X,
+} from "lucide-react";
+
 import { Link, useLocation } from "react-router-dom";
 
 const navLinks = [
-  { label: "Dashboard", path: "/Dashboard/Home", icon: LayoutDashboard },
-  { label: "Products List", path: "/Dashboard/ProductList", icon: Package },
-  { label: "Add Product", path: "/Dashboard/AddProduct", icon: PlusSquare },
+  {
+    label: "Dashboard",
+    path: "/Dashboard/Home",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Products List",
+    path: "/Dashboard/ProductList",
+    icon: Package,
+  },
+  {
+    label: "Add Product",
+    path: "/Dashboard/AddProduct",
+    icon: PlusSquare,
+  },
 ];
 
 export default function SideBar({ onClose }) {
   const { pathname } = useLocation();
 
-  const activeStyles =
-    "flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-2 font-label-md text-label-md font-bold scale-[1.02] transition-all duration-300 pl-6";
-  const inactiveStyles =
-    "flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-highest px-4 py-2 rounded-lg font-label-md text-label-md transition-all duration-200";
-
   return (
-    <nav className="w-[90%] sm:w-[70%] lg:w-full flex flex-col h-full p-5 gap-8 bg-surface-container-low border-r border-outline-variant shadow-sm shrink-0">
-      {/* logoContainer */}
+    <nav className="flex h-full w-full flex-col border-r border-outline-variant bg-surface-container-low p-5 shadow-sm">
+      {/* Logo */}
       <div className="flex items-center justify-between">
         <Link
           to="/landingPage"
           onClick={onClose}
-          className="flex items-center gap-3 px-2 transition-all duration-200 hover:scale-[1.02]"
+          className="flex items-center gap-3 px-2 transition hover:scale-[1.02]"
         >
-          <Cpu className="text-primary w-7 h-7 shrink-0" />
+          <Cpu className="h-7 w-7 shrink-0 text-primary" />
+
           <div>
-            <div className="font-headline-sm text-[16px] text-primary font-bold leading-tight">
+            <div className="font-display text-base font-bold leading-tight text-primary">
               VoltGrid
             </div>
-            <div className="font-label-sm text-label-sm text-on-surface-variant mt-1">
+
+            <div className="mt-1 text-[10px] text-on-surface-variant">
               Product Management
             </div>
           </div>
         </Link>
 
+        {/* Close button - mobile only */}
         <button
+          type="button"
           onClick={onClose}
           aria-label="Close navigation menu"
-          className="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-highest lg:hidden focus:outline-none"
+          className="rounded-lg p-1.5 text-on-surface-variant hover:bg-surface-container-highest lg:hidden"
         >
-          <X className="w-6 h-6" />
+          <X size={22} />
         </button>
       </div>
-      {/* {navigation links} */}
-      <div className="flex-1 space-y-2">
+
+      {/* Navigation */}
+      <div className="mt-8 flex-1 space-y-2">
         {navLinks.map((item) => {
           const Icon = item.icon;
+
           const isActive = pathname.startsWith(item.path);
 
           return (
@@ -54,13 +77,45 @@ export default function SideBar({ onClose }) {
               key={item.path}
               to={item.path}
               onClick={onClose}
-              className={isActive ? activeStyles : inactiveStyles}
+              className={`flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm transition ${
+                isActive
+                  ? "bg-primary-container font-bold text-on-primary-container"
+                  : "text-on-surface-variant hover:bg-surface-container-highest"
+              }`}
             >
-              <Icon className="w-5 h-5 shrink-0" />
+              <Icon size={19} />
+
               <span>{item.label}</span>
             </Link>
           );
         })}
+      </div>
+
+      {/* Bottom */}
+      <div className="space-y-2">
+        {/* System Online */}
+        <div className="mb-3 flex items-center justify-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest py-2 text-[10px] font-semibold text-primary">
+          <Wifi size={14} />
+          <span>System Online</span>
+        </div>
+
+        {/* Settings */}
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-on-surface-variant transition hover:bg-surface-container-highest"
+        >
+          <Settings size={17} />
+          <span>Settings</span>
+        </button>
+
+        {/* Support */}
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-on-surface-variant transition hover:bg-surface-container-highest"
+        >
+          <CircleHelp size={17} />
+          <span>Support</span>
+        </button>
       </div>
     </nav>
   );
