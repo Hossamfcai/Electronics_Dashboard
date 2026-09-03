@@ -1,12 +1,21 @@
-import { useContext, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Context } from "../../context/ContextApi.jsx";
 import Swal from "sweetalert2";
+import {
+  useProductDispatch,
+  useProductState,
+} from "../../context/productContext.jsx";
+import ProductCard from "../../Components/ProductCard.jsx";
+import ProductCardSkeleton from "../../Components/ProductCardSkeleton.jsx";
+import EmptyState from "../../Components/EmptyState.jsx";
+import ErrorState from "../../Components/ErrorState.jsx";
 
 export default function ProductList() {
-  const { products, deleteProduct } = useContext(Context);
-
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const { products, loading, error, productsState } = useProductState();
+
+  const { getProducts, deleteProduct } = useProductDispatch();
 
   async function handleDelete(product) {
     const result = await Swal.fire({
@@ -17,24 +26,58 @@ export default function ProductList() {
       confirmButtonText: "Delete Product",
       cancelButtonText: "Cancel",
       reverseButtons: true,
+      customClass: {
+        popup:
+          "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface",
+        title: "font-display text-on-surface font-bold text-2xl",
+        htmlContainer: "text-on-surface-variant text-sm",
+        confirmButton:
+          "bg-error text-on-error hover:bg-error/90 font-display font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm",
+        cancelButton:
+          "bg-surface-container hover:bg-surface-container-high text-on-surface font-display font-medium px-5 py-2.5 rounded-lg border border-outline-variant transition-colors",
+        actions: "gap-3",
+      },
+      buttonsStyling: false, // Disables default SweetAlert2 button styles
     });
 
     if (result.isConfirmed) {
-      const success = await deleteProduct(product.id);
-
-      if (success) {
+      deleteProduct(product.id);
+      if (!error) {
         await Swal.fire({
           title: "Deleted!",
           text: `"${product.name}" has been deleted successfully.`,
           icon: "success",
+          iconColor: "var(--color-primary)",
           confirmButtonText: "OK",
+          buttonsStyling: false,
+          customClass: {
+            popup:
+              "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface p-6 shadow-lg",
+            title: "font-display text-on-surface font-bold text-2xl mb-1",
+            htmlContainer: "text-on-surface-variant text-sm",
+            confirmButton:
+              "bg-primary text-on-primary hover:bg-primary/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
+          },
         });
       } else {
         await Swal.fire({
           title: "Error!",
-          text: "Something went wrong while deleting the product.",
+          text:
+            typeof error === "string"
+              ? error
+              : "Something went wrong while deleting the product.",
           icon: "error",
+          iconColor: "var(--color-error)",
           confirmButtonText: "OK",
+          buttonsStyling: false,
+          customClass: {
+            popup:
+              "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface p-6 shadow-lg",
+            title: "font-display text-on-surface font-bold text-2xl mb-1",
+            htmlContainer: "text-on-surface-variant text-sm",
+            confirmButton:
+              "bg-error text-on-error hover:bg-error/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
+          },
         });
       }
     }
@@ -57,6 +100,10 @@ export default function ProductList() {
         ? products?.filter((product) => !product.category)
         : products?.filter((product) => product.category === selectedCategory);
 
+  useEffect(() => {
+    getProducts();
+  }, []);
+  console.log(useProductState());
   return (
     <div className="min-h-screen bg-surface px-6 py-8 font-body">
       {/* Header */}
@@ -113,131 +160,24 @@ export default function ProductList() {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {filteredProducts?.map((product) => (
-          <div
-            key={product.id}
-            className={`overflow-hidden rounded-lg shadow-sm ring-1 transition-all duration-300 hover:-translate-y-3 hover:shadow-lg ${
-              product.stock > 0
-                ? "bg-surface-container-lowest ring-outline-variant/40"
-                : "bg-error-container/30 ring-error/40"
-            }`}
-          >
-            {/* Image */}
-            <div className="h-52 w-full overflow-hidden bg-surface-container">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            {/* Card Content */}
-            <div className="p-5">
-              {/* Category + Stock */}
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-label-sm uppercase text-outline">
-                  {product.category}
-                </span>
-
-                <span
-                  className={`rounded-full px-3 py-1 text-label-sm ${
-                    product.stock > 0
-                      ? "bg-primary-fixed text-on-primary-fixed"
-                      : "bg-error-container text-on-error-container"
-                  }`}
-                >
-                  {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                </span>
-              </div>
-
-              {/* Product Name */}
-              <h2 className="font-display text-headline-md text-on-surface">
-                {product.name}
-              </h2>
-
-              {/* Description */}
-              <p className="mt-2 line-clamp-2 text-body-sm text-on-surface-variant">
-                {product.description}
-              </p>
-
-              {/* Price + Stock */}
-              <div className="mt-5 grid grid-cols-2 gap-4 border-y border-outline-variant/50 py-4">
-                <div>
-                  <span className="text-label-sm text-outline">PRICE</span>
-
-                  <p className="mt-1 font-display text-xl font-bold text-primary">
-                    ${product.price}
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-label-sm text-outline">STOCK</span>
-
-                  <p className="mt-1 font-display text-xl font-bold text-on-surface">
-                    {product.stock}
-                  </p>
-                </div>
-              </div>
-
-              {/* Created At */}
-              <div className="mt-4 flex items-center gap-2 text-body-sm text-outline">
-                <i className="fa-regular fa-calendar"></i>
-
-                <span>
-                  Created at {new Date(product.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-
-              {/* Actions */}
-              <div className="mt-4 flex items-center gap-2">
-                {/* Edit */}
-                <Link
-                  to={`/dashboard/editproduct/${product.id}`}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-primary transition-all duration-200 hover:scale-105 hover:bg-primary hover:text-on-primary"
-                >
-                  <i className="fa-solid fa-pen text-sm"></i>
-                </Link>
-
-                {/* Delete */}
-                <button
-                  type="button"
-                  onClick={() => handleDelete(product)}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-error transition-all duration-200 hover:bg-error hover:text-on-error hover:scale-105"
-                >
-                  <i className="fa-solid fa-trash text-sm"></i>
-                </button>
-              </div>
-
-              {/* View Details */}
-              <Link
-                to={`/dashboard/productdetails/${product.id}`}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-label-lg text-on-primary transition hover:bg-primary-container"
-              >
-                View Product Details
-                <i className="fa-solid fa-arrow-right text-xs"></i>
-              </Link>
-            </div>
-          </div>
-        ))}
+        {loading
+          ? Array.from({ length: 3 }).map((_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))
+          : filteredProducts?.map((product) => {
+              return (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  handleDelete={handleDelete}
+                />
+              );
+            })}
       </div>
-
       {/* Empty State */}
-      {(!products || products.length === 0) && (
-        <div className="flex min-h-80 flex-col items-center justify-center text-center">
-          <i className="fa-solid fa-box-open text-4xl text-outline"></i>
-
-          <h2 className="mt-4 font-display text-headline-md text-on-surface">
-            No Products Found
-          </h2>
-
-          <p className="mt-1 text-body-sm text-on-surface-variant">
-            There are no products to display.
-          </p>
-        </div>
-      )}
+      {products.length == 0 && error ? <ErrorState /> : ""}
+      {/* Empty State */}
+      {productsState == "isEmpty" ? <EmptyState /> : ""}
     </div>
   );
 }
-
-
-

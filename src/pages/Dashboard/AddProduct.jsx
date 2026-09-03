@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-import { Context } from "../../context/ContextApi";
+import { Context } from "../../context/contextApi";
 import ProductFormCard from "../../Components/ProductFormCard.jsx";
 
 export default function AddProduct() {
