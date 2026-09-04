@@ -44,8 +44,8 @@ export default function AddProduct() {
 
     if (result) {
       await Swal.fire({
-        title: "Product Updated!",
-        text: `"${productData.name}" has been updated successfully.`,
+        title: "Product Add!",
+        text: `"${productData.name}" has been Add successfully.`,
         icon: "success",
         iconColor: "var(--color-primary)",
         confirmButtonText: "OK",
@@ -65,7 +65,7 @@ export default function AddProduct() {
     } else {
       await Swal.fire({
         title: "Error!",
-        text: "Something went wrong while updating the product.",
+        text: "Something went wrong while Adding the product.",
         icon: "error",
         iconColor: "var(--color-error)",
         confirmButtonText: "OK",
