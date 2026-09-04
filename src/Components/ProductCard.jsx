@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Trash2, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
-import defaultImage from "../assets/screen.png";
+import defaultImage from "../assets/images/screen.png";
 export default function ProductCard({ product, handleDelete, index }) {
   const cardVariants = {
     hidden: {
@@ -109,7 +109,7 @@ export default function ProductCard({ product, handleDelete, index }) {
         <div className="mt-4 flex items-center gap-2">
           {/* Edit */}
           <Link
-            to={`/dashboard/editproduct/${product.id}`}
+            to={`/Dashboard/editproduct/${product.id}`}
             className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-primary transition-all duration-200 hover:scale-105 hover:bg-primary hover:text-on-primary"
           >
             <Pencil />
@@ -127,7 +127,7 @@ export default function ProductCard({ product, handleDelete, index }) {
 
         {/* View Details */}
         <Link
-          to={`/dashboard/ProductList/${product.id}`}
+          to={`/Dashboard/ProductList/${product.id}`}
           className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-label-lg text-on-primary transition hover:bg-primary-container"
         >
           View Product Details

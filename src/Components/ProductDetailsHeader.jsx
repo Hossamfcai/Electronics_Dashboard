@@ -43,7 +43,7 @@ export default function ProductDetailsHeader({ product }) {
           text: `"${product.name}" has been deleted successfully.`,
           icon: "success",
           iconColor: "var(--color-primary)",
-          timer: 500, // Closes after 2 seconds (2000ms)
+          timer: 800, // Closes after 2 seconds (2000ms)
           timerProgressBar: true,
           buttonsStyling: false,
           customClass: {
@@ -55,7 +55,7 @@ export default function ProductDetailsHeader({ product }) {
               "bg-primary text-on-primary hover:bg-primary/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
           },
         });
-        navigate("/dashboard/productlist");
+        navigate("/Dashboard/ProductList");
       } else {
         await Swal.fire({
           title: "Error!",

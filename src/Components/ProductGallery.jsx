@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import defaultImage from "../assets/screen.png";
+import defaultImage from "../assets/images/screen.png";
 export default function ProductGallery({ product }) {
   return (
     <motion.section

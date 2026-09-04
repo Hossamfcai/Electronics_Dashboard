@@ -61,7 +61,7 @@ export default function AddProduct() {
         },
       });
 
-      navigate("/dashboard/productlist");
+      navigate("/Dashboard/ProductList");
     } else {
       await Swal.fire({
         title: "Error!",
@@ -107,7 +107,7 @@ export default function AddProduct() {
 
         {/* Cancel */}
         <Link
-          to="/dashboard/productlist"
+          to="/Dashboard/ProductList"
           className="rounded-md border border-outline-variant bg-surface-container-lowest px-5 py-2.5 text-label-lg text-on-surface transition hover:bg-surface-container"
         >
           Cancel

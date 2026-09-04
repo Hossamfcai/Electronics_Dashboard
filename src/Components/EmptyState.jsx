@@ -1,6 +1,8 @@
 import { Package, Search, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function EmptyState({ isFilteredProductsEmpty }) {
+  const navigate = useNavigate();
   return (
     <div className="flex min-h-130 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-lowest p-8 text-center shadow-sm">
       {/* Icon Badge */}
@@ -28,7 +30,12 @@ export default function EmptyState({ isFilteredProductsEmpty }) {
 
       {/* Actions */}
       <div className="mb-10 flex flex-wrap items-center justify-center gap-4">
-        <button className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90">
+        <button
+          onClick={() => {
+            navigate("/Dashboard/addproduct");
+          }}
+          className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-on-primary shadow-sm transition-colors hover:bg-primary/90"
+        >
           <Plus className="h-5 w-5" />
           {isFilteredProductsEmpty == 0 ? " Add Product" : "Add First Product"}
         </button>

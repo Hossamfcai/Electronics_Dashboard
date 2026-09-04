@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { usePagination } from "@mantine/hooks";
 import {
   useProductDispatch,
   useProductState,
@@ -35,6 +36,8 @@ const itemVariants = {
 export default function ProductList() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStock, setSelectedStock] = useState("All");
+  const [searchQuery, setSearchQuery] = useState(""); // <-- Search State
+
   const { products, loading, error, productsState } = useProductState();
   const { getProducts, deleteProduct } = useProductDispatch();
   const stockOptions = ["All", "In Stock", "Out of Stock"];
@@ -59,7 +62,7 @@ export default function ProductList() {
           "bg-surface-container hover:bg-surface-container-high text-on-surface font-display font-medium px-5 py-2.5 rounded-lg border border-outline-variant transition-colors",
         actions: "gap-3",
       },
-      buttonsStyling: false, // Disables default SweetAlert2 button styles
+      buttonsStyling: false,
     });
 
     if (result.isConfirmed) {
@@ -115,6 +118,7 @@ export default function ProductList() {
     "No Category",
   ];
 
+  // --- Filter Logic with Search Query ---
   const filteredProducts = products?.filter((product) => {
     // Category Condition
     const matchesCategory =
@@ -128,13 +132,52 @@ export default function ProductList() {
       (selectedStock === "In Stock" && product.stock > 0) ||
       (selectedStock === "Out of Stock" && product.stock === 0);
 
-    return matchesCategory && matchesStock;
+    // Search Query Condition (matches name, description, or category)
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      product.name?.toLowerCase().includes(query) ||
+      product.description?.toLowerCase().includes(query) ||
+      product.category?.toLowerCase().includes(query);
+
+    return matchesCategory && matchesStock && matchesSearch;
   });
+
+  // --- Pagination Logic ---
+  const ITEMS_PER_PAGE = 6;
+  const totalPages = Math.ceil(
+    (filteredProducts?.length || 0) / ITEMS_PER_PAGE,
+  );
+
+  const pagination = usePagination({
+    total: totalPages || 1,
+    initialPage: 1,
+  });
+
+  // Reset to page 1 whenever filters or search query change
+  // Reset to page 1 whenever filters or search query change
+  useEffect(() => {
+    pagination.setPage(1);
+  }, [selectedCategory, selectedStock, searchQuery]);
+
+  // Scroll to top whenever active page changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [pagination.active]);
+
+  // Paginated slice for ProductCard rendering
+  const paginatedProducts = filteredProducts?.slice(
+    (pagination.active - 1) * ITEMS_PER_PAGE,
+    pagination.active * ITEMS_PER_PAGE,
+  );
 
   useEffect(() => {
     getProducts();
   }, []);
-  console.log(useProductState());
+
   return (
     <motion.div
       initial="hidden"
@@ -152,82 +195,112 @@ export default function ProductList() {
             Premium Inventory
           </h1>
 
-          <p className="mt-1 text-body-sm text-on-surface-variant">
+          <p className="mt-1 text-body-sm text-on-surface-variant mb-5">
             Manage your products, pricing, and stock information.
           </p>
+          {/* <motion.span
+            key={products?.length}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="rounded-full bg-primary-fixed px-4 py-2 text-label-sm text-on-primary-fixed"
+          >
+            {products?.length || 0} Products
+          </motion.span> */}
         </div>
 
-        <motion.span
-          key={products?.length}
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="rounded-full bg-primary-fixed px-4 py-2 text-label-sm text-on-primary-fixed"
+        <Link
+          to="/Dashboard/addproduct"
+          className="flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-label-lg text-on-primary transition hover:bg-primary-container whitespace-nowrap w-full sm:w-auto"
         >
-          {products?.length || 0} Products
-        </motion.span>
+          <Plus size={18} /> Add New Product
+        </Link>
       </motion.div>
 
       {/* Products Toolbar */}
       <motion.div
         variants={itemVariants}
-        className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+        className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
       >
-        {/* Category Sort */}
-        <div className="flex items-center gap-3">
-          <label
-            htmlFor="category"
-            className="text-label-lg text-on-surface-variant"
-          >
-            Sort by:
-          </label>
+        {/* Search Bar Component */}
+        <div className="relative w-full lg:max-w-xs">
+          <Search
+            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none"
+          />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-9 py-2.5 text-body-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
 
-          <select
-            id="category"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="rounded-md border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-body-sm text-on-surface outline-none focus:border-primary"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+        {/* Filters & Actions Group */}
+        <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto lg:justify-end">
+          {/* Category Sort */}
+          <div className="flex items-center gap-3">
+            <label
+              htmlFor="category"
+              className="text-label-lg text-on-surface-variant whitespace-nowrap"
+            >
+              Sort by:
+            </label>
+
+            <select
+              id="category"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="rounded-md border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-body-sm text-on-surface outline-none focus:border-primary cursor-pointer"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Stock Filter Pills */}
+          <div className="flex items-center gap-2">
+            <span className="text-label-lg text-on-surface-variant mr-1 hidden sm:inline">
+              Stock:
+            </span>
+            {stockOptions.map((option) => {
+              const isActive = selectedStock === option;
+              return (
+                <button
+                  key={option}
+                  onClick={() => setSelectedStock(option)}
+                  className={`relative rounded-full px-4 py-2.5 text-label-sm transition-colors duration-200 cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-on-primary shadow-sm font-medium"
+                      : "bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant"
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Add Product Button */}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-label-lg text-on-surface-variant mr-1">
-            Stock:
-          </span>
-          {stockOptions.map((option) => {
-            const isActive = selectedStock === option;
-            return (
-              <button
-                key={option}
-                onClick={() => setSelectedStock(option)}
-                className={`relative rounded-full px-4 py-2.5 text-label-sm transition-colors duration-200 cursor-pointer ${
-                  isActive
-                    ? "bg-primary text-on-primary shadow-sm font-medium"
-                    : "bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant"
-                }`}
-              >
-                {option}
-              </button>
-            );
-          })}
-        </div>
-        {/* Add Product */}
-        <Link
-          to="/dashboard/addproduct"
-          className="flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-label-lg text-on-primary transition hover:bg-primary-container"
-        >
-          <Plus /> Add New Product
-        </Link>
       </motion.div>
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {loading
-          ? Array.from({ length: 3 }).map((_, index) => (
+          ? Array.from({ length: 6 }).map((_, index) => (
               <motion.div
                 key={`skeleton-${index}`}
                 initial={{ opacity: 0 }}
@@ -238,19 +311,70 @@ export default function ProductList() {
                 <ProductCardSkeleton />
               </motion.div>
             ))
-          : filteredProducts?.map((product, i) => {
-              return (
-                <ProductCard
-                  key={product.id}
-                  index={i}
-                  product={product}
-                  handleDelete={handleDelete}
-                />
-              );
-            })}
+          : paginatedProducts?.map((product, i) => (
+              <ProductCard
+                key={product.id}
+                index={i}
+                product={product}
+                handleDelete={handleDelete}
+              />
+            ))}
       </div>
-      {/* Empty State */}
-      {products.length == 0 && error ? (
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <motion.div
+          variants={itemVariants}
+          className="mt-10 flex items-center justify-center gap-2"
+        >
+          <button
+            onClick={pagination.previous}
+            disabled={pagination.active === 1}
+            className="flex items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest p-2.5 text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface disabled:opacity-40 disabled:hover:bg-surface-container-lowest cursor-pointer disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={18} />
+          </button>
+
+          {pagination.range.map((page, index) => {
+            if (page === "dots") {
+              return (
+                <span
+                  key={`dots-${index}`}
+                  className="px-3 py-2 text-label-lg text-on-surface-variant"
+                >
+                  ...
+                </span>
+              );
+            }
+
+            const isCurrent = page === pagination.active;
+            return (
+              <button
+                key={`page-${page}`}
+                onClick={() => pagination.setPage(page)}
+                className={`min-w-[40px] h-[40px] rounded-lg text-label-lg font-medium transition cursor-pointer ${
+                  isCurrent
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+                }`}
+              >
+                {page}
+              </button>
+            );
+          })}
+
+          <button
+            onClick={pagination.next}
+            disabled={pagination.active === totalPages}
+            className="flex items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest p-2.5 text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface disabled:opacity-40 disabled:hover:bg-surface-container-lowest cursor-pointer disabled:cursor-not-allowed"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </motion.div>
+      )}
+
+      {/* Error State */}
+      {!loading && error && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -258,9 +382,8 @@ export default function ProductList() {
         >
           <ErrorState />
         </motion.div>
-      ) : (
-        ""
       )}
+
       {/* Empty State */}
       {productsState == "isEmpty" || filteredProducts.length == 0 ? (
         <motion.div
@@ -268,7 +391,12 @@ export default function ProductList() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
         >
-          <EmptyState isFilteredProductsEmpty={filteredProducts.length} />
+          {!error &&
+            !loading &&
+            filteredProducts &&
+            filteredProducts.length == 0 && (
+              <EmptyState isFilteredProductsEmpty={filteredProducts.length} />
+            )}
         </motion.div>
       ) : (
         ""

@@ -1,4 +1,4 @@
-import { useEffect, useContext } from "react";
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import ErrorState from "../../Components/ErrorState.jsx";
@@ -7,7 +7,6 @@ import ProductGallery from "../../Components/ProductGallery";
 import ProductSummary from "../../Components/ProductSummary";
 import ProductAttributes from "../../Components/ProductAttributes";
 import { Skeleton, Grid, Paper, Stack, Group } from "@mantine/core";
-import { Context } from "../../context/contextApi";
 import {
   useProductDispatch,
   useProductState,
@@ -15,7 +14,7 @@ import {
 
 export default function ProductDetails() {
   const { id } = useParams();
-  const { getAllProducts } = useContext(Context) || {};
+
   const { getSpecificProduct } = useProductDispatch();
   const { specificProduct, loading, error } = useProductState();
 
@@ -23,9 +22,6 @@ export default function ProductDetails() {
     getSpecificProduct(id);
   }, [id]);
 
-  const handleProductDeleted = () => {
-    getAllProducts?.();
-  };
   console.log(specificProduct);
 
   if (error) {
@@ -158,10 +154,7 @@ export default function ProductDetails() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
         >
-          <ProductDetailsHeader
-            product={specificProduct}
-            onProductDeleted={handleProductDeleted}
-          />
+          <ProductDetailsHeader product={specificProduct} />
         </motion.div>
 
         {/* Gallery and Summary */}

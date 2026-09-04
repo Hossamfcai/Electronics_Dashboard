@@ -1,7 +1,7 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Zap, BookOpen, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
-import heroPhoto from "../assets/HeroPhoto.png";
+import heroPhoto from "../assets/images/HeroPhoto.png";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -101,7 +101,7 @@ export default function HeroSection() {
           variants={itemVariants}
           className="flex flex-col sm:flex-row items-center gap-4 mt-6 w-full sm:w-auto"
         >
-          <Link to={"/dashboard"}>
+          <Link to={"/Dashboard"}>
             <motion.a
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}

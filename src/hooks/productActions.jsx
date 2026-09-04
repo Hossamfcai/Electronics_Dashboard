@@ -9,6 +9,7 @@ import {
 
 export function ProductsActions(dispatch) {
   const getProducts = useCallback(async () => {
+    // console.log(apiUrl);
     if (!dispatch) return;
     dispatch({ type: "SET_LOADING" });
     try {

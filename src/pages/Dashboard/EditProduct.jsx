@@ -65,7 +65,7 @@ export default function EditProduct() {
         },
       });
 
-      navigate("/dashboard/productlist");
+      navigate("/Dashboard/ProductList");
     } else {
       await Swal.fire({
         title: "Error!",
@@ -95,7 +95,7 @@ export default function EditProduct() {
         <h1 className="text-headline-lg text-on-surface">Product Not Found</h1>
 
         <Link
-          to="/dashboard/productlist"
+          to="/Dashboard/ProductList"
           className="mt-4 inline-block rounded-md bg-primary px-5 py-3 text-on-primary"
         >
           Back to Products
@@ -127,7 +127,7 @@ export default function EditProduct() {
         </div>
 
         <Link
-          to="/dashboard/productlist"
+          to="/Dashboard/ProductList"
           className="rounded-md border border-outline-variant bg-surface-container-lowest px-5 py-2.5 text-label-lg text-on-surface transition hover:bg-surface-container"
         >
           Cancel
