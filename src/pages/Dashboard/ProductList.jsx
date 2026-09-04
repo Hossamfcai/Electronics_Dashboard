@@ -149,9 +149,12 @@ export default function ProductList() {
 
   // --- Safe Pagination Calculation ---
   const ITEMS_PER_PAGE = 6;
-  const calculatedPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-  const totalPages = calculatedPages > 0 ? calculatedPages : 1;
+  const itemLength = Array.isArray(filteredProducts)
+    ? filteredProducts.length
+    : 0;
+  const totalPages = Math.max(1, Math.ceil(itemLength / ITEMS_PER_PAGE));
 
+  // 2. Pass totalPages (guaranteed >= 1) to usePagination
   const pagination = usePagination({
     total: totalPages,
     initialPage: 1,
