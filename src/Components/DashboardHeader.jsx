@@ -35,13 +35,13 @@ export default function DashboardHeader() {
       </motion.div>
 
       {/* Right side */}
-      <motion.div
+      {/* <motion.div
         className="flex items-center gap-3"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.1, duration: 0.4 }}
       >
-        {/* Search */}
+      
         <motion.div
           className="flex h-10 w-full items-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-3 sm:w-64"
           whileHover={{ borderColor: "var(--color-primary)", boxShadow: "0 0 0 2px rgba(63, 81, 181, 0.1)" }}
@@ -62,7 +62,7 @@ export default function DashboardHeader() {
           />
         </motion.div>
 
-        {/* Notification */}
+     
         <motion.button
           type="button"
           aria-label="Notifications"
@@ -76,7 +76,7 @@ export default function DashboardHeader() {
           </motion.div>
         </motion.button>
 
-        {/* Avatar */}
+     
         <motion.div
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary-container font-bold text-on-secondary-container"
           initial={{ opacity: 0, scale: 0.5 }}
@@ -87,7 +87,7 @@ export default function DashboardHeader() {
         >
           V
         </motion.div>
-      </motion.div>
+      </motion.div> */}
     </motion.header>
   );
 }

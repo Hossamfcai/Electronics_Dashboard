@@ -1,25 +1,31 @@
-import { useContext } from "react";
+import { useEffect } from "react";
 import { Activity, DollarSign, Layers3, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-import { Context } from "../../context/contextApi.jsx";
-
 import DashboardHeader from "../../Components/DashboardHeader";
 import StatCard from "../../Components/StatCard";
 import RecentProducts from "../../Components/RecentProducts";
 import SystemHealth from "../../Components/SystemHealth";
+import {
+  useProductDispatch,
+  useProductState,
+} from "../../context/productContext.jsx";
 
 export default function DashBoard() {
-  const contextValue = useContext(Context) || {};
-  const { products = [], loading = false, error = null } = contextValue;
+  const { products, loading, error } = useProductState();
+  const { getProducts } = useProductDispatch();
 
   const navigate = useNavigate();
 
   // Calculate real statistics from products
   const totalProducts = products.length || 0;
-  const totalInventoryValue = products.reduce((sum, p) => sum + ((p.price || 0) * (p.stock || 0)), 0);
-  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const totalInventoryValue = products.reduce(
+    (sum, p) => sum + (p.price || 0) * (p.stock || 0),
+    0,
+  );
+  const categories = [
+    ...new Set(products.map((p) => p.category).filter(Boolean)),
+  ];
   const activeCategories = categories.length || 0;
   const apiStatus = error ? "Error" : loading ? "Loading..." : "99.9% Uptime";
   const badgeType = error ? "error" : loading ? "stable" : "live";
@@ -72,7 +78,9 @@ export default function DashBoard() {
       transition: { duration: 0.2 },
     },
   };
-
+  useEffect(() => {
+    getProducts();
+  }, []);
   return (
     <motion.div
       className="w-full"
@@ -144,7 +152,11 @@ export default function DashBoard() {
             icon={DollarSign}
             title="Total Inventory Value"
             value={`$${(totalInventoryValue / 100000).toFixed(2)}k`}
-            badge={totalInventoryValue > 0 ? `${(totalInventoryValue / 1000).toFixed(0)}k total` : "$0"}
+            badge={
+              totalInventoryValue > 0
+                ? `${(totalInventoryValue / 1000).toFixed(0)}k total`
+                : "$0"
+            }
           />
         </motion.div>
 
