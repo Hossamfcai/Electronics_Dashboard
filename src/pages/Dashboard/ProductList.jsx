@@ -43,6 +43,7 @@ export default function ProductList() {
   const products = productState.products || [];
   const loading = productState.loading || false;
   const error = productState.error || null;
+  const productsState = productState.productsState || "";
 
   const { getProducts, deleteProduct } = useProductDispatch();
   const stockOptions = ["All", "In Stock", "Out of Stock"];
@@ -389,14 +390,18 @@ export default function ProductList() {
       )}
 
       {/* Empty State */}
-      {!loading && !error && filteredProducts.length === 0 && (
+      {productsState == "isEmpty" || filteredProducts.length == 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
         >
-          <EmptyState isFilteredProductsEmpty={0} />
+          {!error && (
+            <EmptyState isFilteredProductsEmpty={filteredProducts.length} />
+          )}
         </motion.div>
+      ) : (
+        ""
       )}
     </motion.div>
   );
