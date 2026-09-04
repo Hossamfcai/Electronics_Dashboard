@@ -4,6 +4,7 @@ export const initialState = {
   products: [],
   loading: false,
   error: false,
+  serverError: false,
 };
 
 export function productReducer(state, action) {
@@ -12,7 +13,7 @@ export function productReducer(state, action) {
       return { ...state, loading: true, error: false };
 
     case "SET_ERROR":
-      return { ...state, loading: false, error: true };
+      return { ...state, loading: false, error: true, serverError: true };
 
     case "FETCH_SUCCESS": {
       const payload = Array.isArray(action.payload) ? action.payload : [];
@@ -23,6 +24,7 @@ export function productReducer(state, action) {
         products: payload,
         error: false,
         specificProduct: {},
+        serverError: false,
       };
     }
     case "FETCH_PRODUCT_SUCCESS":
@@ -31,6 +33,7 @@ export function productReducer(state, action) {
         loading: false,
         error: false,
         specificProduct: { ...action.payload },
+        serverError: false,
       };
 
     case "ADD_PRODUCT_SUCCESS":
@@ -41,6 +44,7 @@ export function productReducer(state, action) {
         products: [action.payload, ...state.products],
         error: null,
         specificProduct: {},
+        serverError: false,
       };
 
     case "UPDATE_PRODUCT_SUCCESS":
@@ -55,6 +59,7 @@ export function productReducer(state, action) {
         ),
         error: false,
         specificProduct: { ...action.payload.body },
+        serverError: false,
       };
 
     case "DELETE_PRODUCT_SUCCESS":
@@ -67,6 +72,7 @@ export function productReducer(state, action) {
         ),
         error: false,
         specificProduct: {},
+        serverError: false,
       };
 
     default:

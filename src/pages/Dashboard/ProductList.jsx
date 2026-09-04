@@ -44,6 +44,7 @@ export default function ProductList() {
   const loading = productState.loading || false;
   const error = productState.error || null;
   const productsState = productState.productsState || "";
+  const serverError = productState.serverError || null;
 
   const { getProducts, deleteProduct } = useProductDispatch();
   const stockOptions = ["All", "In Stock", "Out of Stock"];
@@ -379,7 +380,7 @@ export default function ProductList() {
       )}
 
       {/* Error State */}
-      {!loading && error && (
+      {!loading && error && serverError && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -396,7 +397,7 @@ export default function ProductList() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
         >
-          {!error && (
+          {!error && !serverError && (
             <EmptyState isFilteredProductsEmpty={filteredProducts.length} />
           )}
         </motion.div>
