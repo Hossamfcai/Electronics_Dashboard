@@ -38,12 +38,12 @@ export default function ProductList() {
   const [selectedStock, setSelectedStock] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const {
-    products = [],
-    loading,
-    error,
-    productsState,
-  } = useProductState() || {};
+  // Default products to empty array safely
+  const productState = useProductState() || {};
+  const products = productState.products || [];
+  const loading = productState.loading || false;
+  const error = productState.error || null;
+
   const { getProducts, deleteProduct } = useProductDispatch();
   const stockOptions = ["All", "In Stock", "Out of Stock"];
 
@@ -117,14 +117,16 @@ export default function ProductList() {
     "All",
     ...new Set(
       products
-        ?.map((product) => product.category)
-        .filter((category) => category),
+        .map((product) => product?.category)
+        .filter((category) => Boolean(category)),
     ),
     "No Category",
   ];
 
-  // --- Filter Logic with Search Query ---
-  const filteredProducts = (products || []).filter((product) => {
+  // Guaranteed Array filtering
+  const filteredProducts = products.filter((product) => {
+    if (!product) return false;
+
     const matchesCategory =
       selectedCategory === "All" ||
       (selectedCategory === "No Category" && !product.category) ||
@@ -145,24 +147,22 @@ export default function ProductList() {
     return matchesCategory && matchesStock && matchesSearch;
   });
 
-  // --- Pagination Logic ---
+  // --- Safe Pagination Calculation ---
   const ITEMS_PER_PAGE = 6;
-  const totalPages = Math.ceil(
-    (filteredProducts?.length || 0) / ITEMS_PER_PAGE,
-  );
+  const calculatedPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const totalPages = calculatedPages > 0 ? calculatedPages : 1;
 
   const pagination = usePagination({
-    total: totalPages || 1,
+    total: totalPages,
     initialPage: 1,
   });
 
-  // Reset to page 1 whenever filters or search query change
-  // Reset to page 1 whenever filters or search query change
+  // Reset page when filters change
   useEffect(() => {
     pagination.setPage(1);
   }, [selectedCategory, selectedStock, searchQuery]);
 
-  // Scroll to top whenever active page changes
+  // Scroll to top on page change
   useEffect(() => {
     window.scrollTo({
       top: 0,
@@ -170,8 +170,7 @@ export default function ProductList() {
     });
   }, [pagination.active]);
 
-  // Paginated slice for ProductCard rendering
-  const paginatedProducts = filteredProducts?.slice(
+  const paginatedProducts = filteredProducts.slice(
     (pagination.active - 1) * ITEMS_PER_PAGE,
     pagination.active * ITEMS_PER_PAGE,
   );
@@ -197,25 +196,19 @@ export default function ProductList() {
             Premium Inventory
           </h1>
 
-          <p className="mt-1 text-body-sm text-on-surface-variant mb-5">
+          <p className="mt-1 text-body-sm text-on-surface-variant">
             Manage your products, pricing, and stock information.
           </p>
-          {/* <motion.span
-            key={products?.length}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="rounded-full bg-primary-fixed px-4 py-2 text-label-sm text-on-primary-fixed"
-          >
-            {products?.length || 0} Products
-          </motion.span> */}
         </div>
 
-        <Link
-          to="/Dashboard/addproduct"
-          className="flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-label-lg text-on-primary transition hover:bg-primary-container whitespace-nowrap w-full sm:w-auto"
+        <motion.span
+          key={products.length}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="rounded-full bg-primary-fixed px-4 py-2 text-label-sm text-on-primary-fixed"
         >
-          <Plus size={18} /> Add New Product
-        </Link>
+          {products.length} Products
+        </motion.span>
       </motion.div>
 
       {/* Products Toolbar */}
@@ -296,6 +289,12 @@ export default function ProductList() {
           </div>
 
           {/* Add Product Button */}
+          <Link
+            to="/Dashboard/addproduct"
+            className="flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-label-lg text-on-primary transition hover:bg-primary-container whitespace-nowrap w-full sm:w-auto"
+          >
+            <Plus size={18} /> Add New Product
+          </Link>
         </div>
       </motion.div>
 
@@ -313,7 +312,7 @@ export default function ProductList() {
                 <ProductCardSkeleton />
               </motion.div>
             ))
-          : paginatedProducts?.map((product, i) => (
+          : paginatedProducts.map((product, i) => (
               <ProductCard
                 key={product.id}
                 index={i}
@@ -337,7 +336,7 @@ export default function ProductList() {
             <ChevronLeft size={18} />
           </button>
 
-          {pagination.range.map((page, index) => {
+          {(pagination.range || []).map((page, index) => {
             if (page === "dots") {
               return (
                 <span
@@ -387,14 +386,13 @@ export default function ProductList() {
       )}
 
       {/* Empty State */}
-      {/* Empty State */}
-      {!loading && !error && (filteredProducts?.length || 0) === 0 && (
+      {!loading && !error && filteredProducts.length === 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
         >
-          <EmptyState isFilteredProductsEmpty={filteredProducts?.length || 0} />
+          <EmptyState isFilteredProductsEmpty={0} />
         </motion.div>
       )}
     </motion.div>
