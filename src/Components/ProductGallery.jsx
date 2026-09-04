@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { ImageOff } from "lucide-react";
 import { motion } from "framer-motion";
-
+import defaultImage from "../assets/screen.png";
 export default function ProductGallery({ product }) {
   const getImages = () => {
     if (Array.isArray(product.images) && product.images.length > 0) {
@@ -41,21 +40,12 @@ export default function ProductGallery({ product }) {
       transition={{ duration: 0.4 }}
     >
       {/* Main Image */}
-      <div className="flex h-[420px] items-center justify-center overflow-hidden rounded-lg bg-surface-container-low">
-        {currentImage ? (
-          <img
-            src={currentImage}
-            alt={product.name || "Product"}
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <div className="flex flex-col items-center gap-2 text-on-surface-variant">
-            <ImageOff size={40} />
-            <span className="text-body-sm">
-              No product image
-            </span>
-          </div>
-        )}
+      <div className="flex h-105 items-center justify-center overflow-hidden rounded-lg bg-surface-container-low">
+        <img
+          src={currentImage ? currentImage : defaultImage}
+          alt={product.name || "Product"}
+          className="h-full w-full object-contain"
+        />
       </div>
 
       {/* Thumbnails */}

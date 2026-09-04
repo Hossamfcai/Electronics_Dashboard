@@ -1,9 +1,36 @@
 import { Link } from "react-router-dom";
 import { Trash2, Pencil } from "lucide-react";
-export default function ProductCard({ product, handleDelete }) {
+import { motion } from "framer-motion";
+import defaultImage from "../assets/screen.png";
+export default function ProductCard({ product, handleDelete, index }) {
+  console.log(product);
+  const cardVariants = {
+    hidden: {
+      opacity: 0,
+      y: 20,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        delay: index * 0.08,
+        ease: "easeOut",
+      },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      transition: { duration: 0.2 },
+    },
+  };
   return (
-    <div
-      key={product.id}
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      whileHover={{ y: -8 }}
       className={`flex flex-col justify-between overflow-hidden rounded-lg shadow-sm ring-1 transition-all duration-300 hover:-translate-y-3 hover:shadow-lg ${
         product.stock > 0
           ? "bg-surface-container-lowest ring-outline-variant/40"
@@ -11,11 +38,13 @@ export default function ProductCard({ product, handleDelete }) {
       }`}
     >
       {/* Image */}
-      <div className="h-52 w-full overflow-hidden bg-surface-container">
-        <img
-          src={product.image} //handle image
+      <div className=" w-full overflow-hidden bg-surface-container">
+        <motion.img
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.3 }}
+          src={product.image !== "" ? product.image : defaultImage} //handle image
           alt={product.name}
-          className="h-full w-full object-cover"
+          className=" w-full object-cover"
         />
       </div>
 
@@ -105,6 +134,6 @@ export default function ProductCard({ product, handleDelete }) {
           <i className="fa-solid fa-arrow-right text-xs"></i>
         </Link>
       </div>
-    </div>
+    </motion.div>
   );
 }

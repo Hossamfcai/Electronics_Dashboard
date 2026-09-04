@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import Swal from "sweetalert2";
+import { Plus } from "lucide-react";
 import {
   useProductDispatch,
   useProductState,
@@ -10,12 +12,32 @@ import ProductCardSkeleton from "../../Components/ProductCardSkeleton.jsx";
 import EmptyState from "../../Components/EmptyState.jsx";
 import ErrorState from "../../Components/ErrorState.jsx";
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: -15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" },
+  },
+};
+
 export default function ProductList() {
   const [selectedCategory, setSelectedCategory] = useState("All");
-
+  const [selectedStock, setSelectedStock] = useState("All");
   const { products, loading, error, productsState } = useProductState();
-
   const { getProducts, deleteProduct } = useProductDispatch();
+  const stockOptions = ["All", "In Stock", "Out of Stock"];
 
   async function handleDelete(product) {
     const result = await Swal.fire({
@@ -93,21 +115,38 @@ export default function ProductList() {
     "No Category",
   ];
 
-  const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : selectedCategory === "No Category"
-        ? products?.filter((product) => !product.category)
-        : products?.filter((product) => product.category === selectedCategory);
+  const filteredProducts = products?.filter((product) => {
+    // Category Condition
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (selectedCategory === "No Category" && !product.category) ||
+      product.category === selectedCategory;
+
+    // Stock Condition
+    const matchesStock =
+      selectedStock === "All" ||
+      (selectedStock === "In Stock" && product.stock > 0) ||
+      (selectedStock === "Out of Stock" && product.stock === 0);
+
+    return matchesCategory && matchesStock;
+  });
 
   useEffect(() => {
     getProducts();
   }, []);
   console.log(useProductState());
   return (
-    <div className="min-h-screen bg-surface px-6 py-8 font-body">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="min-h-screen bg-surface px-6 py-8 font-body"
+    >
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <motion.div
+        variants={itemVariants}
+        className="mb-8 flex items-center justify-between"
+      >
         <div>
           <h1 className="font-display text-headline-lg text-on-surface">
             Premium Inventory
@@ -118,13 +157,21 @@ export default function ProductList() {
           </p>
         </div>
 
-        <span className="rounded-full bg-primary-fixed px-4 py-2 text-label-sm text-on-primary-fixed">
+        <motion.span
+          key={products?.length}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="rounded-full bg-primary-fixed px-4 py-2 text-label-sm text-on-primary-fixed"
+        >
           {products?.length || 0} Products
-        </span>
-      </div>
+        </motion.span>
+      </motion.div>
 
       {/* Products Toolbar */}
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <motion.div
+        variants={itemVariants}
+        className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between"
+      >
         {/* Category Sort */}
         <div className="flex items-center gap-3">
           <label
@@ -147,27 +194,55 @@ export default function ProductList() {
             ))}
           </select>
         </div>
-
+        <div className="flex items-center gap-2">
+          <span className="text-label-lg text-on-surface-variant mr-1">
+            Stock:
+          </span>
+          {stockOptions.map((option) => {
+            const isActive = selectedStock === option;
+            return (
+              <button
+                key={option}
+                onClick={() => setSelectedStock(option)}
+                className={`relative rounded-full px-4 py-2.5 text-label-sm transition-colors duration-200 cursor-pointer ${
+                  isActive
+                    ? "bg-primary text-on-primary shadow-sm font-medium"
+                    : "bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant"
+                }`}
+              >
+                {option}
+              </button>
+            );
+          })}
+        </div>
         {/* Add Product */}
         <Link
           to="/dashboard/addproduct"
           className="flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-label-lg text-on-primary transition hover:bg-primary-container"
         >
-          <i className="fa-solid fa-plus"></i>
-          Add New Product
+          <Plus /> Add New Product
         </Link>
-      </div>
+      </motion.div>
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {loading
           ? Array.from({ length: 3 }).map((_, index) => (
-              <ProductCardSkeleton key={index} />
+              <motion.div
+                key={`skeleton-${index}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ProductCardSkeleton />
+              </motion.div>
             ))
-          : filteredProducts?.map((product) => {
+          : filteredProducts?.map((product, i) => {
               return (
                 <ProductCard
                   key={product.id}
+                  index={i}
                   product={product}
                   handleDelete={handleDelete}
                 />
@@ -175,9 +250,29 @@ export default function ProductList() {
             })}
       </div>
       {/* Empty State */}
-      {products.length == 0 && error ? <ErrorState /> : ""}
+      {products.length == 0 && error ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+        >
+          <ErrorState />
+        </motion.div>
+      ) : (
+        ""
+      )}
       {/* Empty State */}
-      {productsState == "isEmpty" ? <EmptyState /> : ""}
-    </div>
+      {productsState == "isEmpty" || filteredProducts.length == 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+        >
+          <EmptyState isFilteredProductsEmpty={filteredProducts.length} />
+        </motion.div>
+      ) : (
+        ""
+      )}
+    </motion.div>
   );
 }

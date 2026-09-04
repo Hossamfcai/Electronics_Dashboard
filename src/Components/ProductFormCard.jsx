@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useProductState } from "../context/productContext";
 
 export default function ProductFormCard({
   onSubmit,
@@ -14,7 +15,7 @@ export default function ProductFormCard({
     image: "",
     description: "",
   });
-
+  const { loading } = useProductState();
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -106,7 +107,7 @@ export default function ProductFormCard({
     if (formData.image.trim()) {
       productData.image = formData.image.trim();
     }
-
+    console.log(productData);
     onSubmit?.(productData);
   }
 
@@ -375,11 +376,16 @@ export default function ProductFormCard({
         <div className="flex justify-end pt-2">
           <button
             type="submit"
-            className="rounded-md bg-primary px-5 py-2.5 text-label-lg text-on-primary transition hover:bg-primary-container"
+            disabled={loading}
+            className="flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-label-lg text-on-primary transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-70"
           >
-            <i className={`fa-solid ${isEdit ? "fa-pen" : "fa-plus"} mr-2`}></i>
-
-            {isEdit ? "Save Changes" : "Save Product"}
+            {loading ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-on-primary border-t-transparent" />
+            ) : isEdit ? (
+              <span> Save changes</span>
+            ) : (
+              <span>Sumbit</span>
+            )}
           </button>
         </div>
       </form>

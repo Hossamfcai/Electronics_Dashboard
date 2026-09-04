@@ -9,7 +9,8 @@ function ContextApiProvider({ children }) {
   const [error, setError] = useState(null);
 
   // Backend API base URL from environment or default to localhost
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const API_BASE_URL =
+    import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
   async function getAllProducts() {
     try {

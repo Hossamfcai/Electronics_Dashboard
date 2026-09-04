@@ -18,3 +18,24 @@ export async function deleteProductService(id) {
   console.log(response);
   return response.data.success;
 }
+
+export async function updateProductService(body, id) {
+  console.log(typeof body);
+  const response = await axios.put(
+    `http://localhost:5000/api/products/${id}`,
+    body,
+  );
+  if (!response.data.success)
+    throw new Error(`Failed to update product (${response.status})`);
+  console.log(response);
+  return response.data.success;
+}
+
+export async function addProductService(body) {
+  console.log(typeof body);
+  const response = await axios.post(`http://localhost:5000/api/products`, body);
+  if (!response.data.success)
+    throw new Error(`Failed to add product (${response.status})`);
+  console.log(response);
+  return response.data.success;
+}

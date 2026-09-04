@@ -22,23 +22,32 @@ export function productReducer(state, action) {
         error: false,
       };
 
-    // case "ADD_USER_SUCCESS":
-    //   return {
-    //     ...state,
-    //     loading: false,
-    //     users: [action.payload, ...state.users],
-    //     error: null,
-    //   };
+    case "FETCH_PRODUCT_SUCCESS":
+      return {
+        ...state,
+      };
 
-    // case "UPDATE_USER_SUCCESS":
-    //   return {
-    //     ...state,
-    //     loading: false,
-    //     users: state.users.map((user) =>
-    //       user.id === action.payload.id ? { ...user, ...action.payload } : user,
-    //     ),
-    //     error: null,
-    //   };
+    case "ADD_PRODUCT_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        productsState: state.products.length == 0 ? "isEmpty" : "",
+        products: [action.payload, ...state.products],
+        error: null,
+      };
+
+    case "UPDATE_PRODUCT_SUCCESS":
+      return {
+        ...state,
+        loading: false,
+        productsState: state.products.length == 0 ? "isEmpty" : "",
+        products: state.products.map((product) =>
+          product.id === action.payload.id
+            ? { ...product, ...action.payload.body }
+            : product,
+        ),
+        error: false,
+      };
 
     case "DELETE_PRODUCT_SUCCESS":
       return {

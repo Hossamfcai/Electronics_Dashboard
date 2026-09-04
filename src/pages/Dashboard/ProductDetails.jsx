@@ -35,8 +35,7 @@ export default function ProductDetails() {
         console.error("Error loading product:", err);
 
         setError(
-          err.response?.data?.message ||
-            "Failed to load product details."
+          err.response?.data?.message || "Failed to load product details.",
         );
       } finally {
         setLoading(false);
@@ -67,7 +66,7 @@ export default function ProductDetails() {
   if (loading) {
     return (
       <motion.div
-        className="flex min-h-[500px] items-center justify-center"
+        className="flex min-h-125 items-center justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -87,7 +86,7 @@ export default function ProductDetails() {
   if (error) {
     return (
       <motion.div
-        className="flex min-h-[500px] items-center justify-center"
+        className="flex min-h-125 items-center justify-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -98,9 +97,7 @@ export default function ProductDetails() {
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 15 }}
         >
-          <p className="text-body-md text-error">
-            {error}
-          </p>
+          <p className="text-body-md text-error">{error}</p>
         </motion.div>
       </motion.div>
     );
@@ -109,7 +106,7 @@ export default function ProductDetails() {
   if (!product) {
     return (
       <motion.div
-        className="flex min-h-[500px] items-center justify-center"
+        className="flex min-h-125 items-center justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -182,4 +179,3 @@ export default function ProductDetails() {
     </motion.div>
   );
 }
-
