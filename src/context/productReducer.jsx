@@ -1,4 +1,5 @@
 export const initialState = {
+  specificProduct: {},
   productsState: "",
   products: [],
   loading: false,
@@ -20,11 +21,15 @@ export function productReducer(state, action) {
         loading: false,
         products: action.payload,
         error: false,
+        specificProduct: {},
       };
 
     case "FETCH_PRODUCT_SUCCESS":
       return {
         ...state,
+        loading: false,
+        error: false,
+        specificProduct: { ...action.payload },
       };
 
     case "ADD_PRODUCT_SUCCESS":
@@ -34,6 +39,7 @@ export function productReducer(state, action) {
         productsState: state.products.length == 0 ? "isEmpty" : "",
         products: [action.payload, ...state.products],
         error: null,
+        specificProduct: {},
       };
 
     case "UPDATE_PRODUCT_SUCCESS":
@@ -47,6 +53,7 @@ export function productReducer(state, action) {
             : product,
         ),
         error: false,
+        specificProduct: { ...action.payload.body },
       };
 
     case "DELETE_PRODUCT_SUCCESS":
@@ -58,6 +65,7 @@ export function productReducer(state, action) {
           (product) => product.id !== action.payload,
         ),
         error: false,
+        specificProduct: {},
       };
 
     default:

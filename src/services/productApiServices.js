@@ -8,6 +8,14 @@ export async function getAllProducts() {
   console.log(response.data.data);
   return response.data.data;
 }
+export async function getProductService(id) {
+  const response = await axios.get(`http://localhost:5000/api/products/${id}`);
+  console.log(response);
+  if (response.status !== 200)
+    throw new Error(`Failed to fetch product (${response.status})`);
+  console.log(response.data.data);
+  return response.data.data;
+}
 
 export async function deleteProductService(id) {
   const response = await axios.delete(

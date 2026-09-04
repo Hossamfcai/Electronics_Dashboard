@@ -3,6 +3,7 @@ import {
   addProductService,
   deleteProductService,
   getAllProducts,
+  getProductService,
   updateProductService,
 } from "../services/productApiServices";
 
@@ -12,7 +13,7 @@ export function ProductsActions(dispatch) {
     dispatch({ type: "SET_LOADING" });
     try {
       const data = await getAllProducts();
-      console.log(data);
+      // console.log(data);
       dispatch({ type: "FETCH_SUCCESS", payload: data });
     } catch (err) {
       console.log("err is happen" + err);
@@ -23,7 +24,25 @@ export function ProductsActions(dispatch) {
     }
   }, [dispatch]);
 
-  // Return the actions so components can use them
+  const getSpecificProduct = useCallback(
+    async (id) => {
+      if (!dispatch) return;
+      dispatch({ type: "SET_LOADING" });
+      try {
+        const response = await getProductService(id);
+        // console.log(response);
+        dispatch({ type: "FETCH_PRODUCT_SUCCESS", payload: response });
+      } catch (err) {
+        console.log("err is happen" + err);
+        dispatch({
+          type: "SET_ERROR",
+          payload: err.message || "Error fetching product",
+        });
+        return err;
+      }
+    },
+    [dispatch],
+  );
 
   const deleteProduct = useCallback(
     async (id) => {
@@ -32,6 +51,7 @@ export function ProductsActions(dispatch) {
       dispatch({ type: "SET_LOADING" });
       try {
         const data = await deleteProductService(id);
+        console.log(data);
         if (data) {
           dispatch({ type: "DELETE_PRODUCT_SUCCESS", payload: id });
         }
@@ -41,6 +61,7 @@ export function ProductsActions(dispatch) {
           type: "SET_ERROR",
           payload: err.message || "Error in delete products",
         });
+        console.log(err);
       }
     },
     [dispatch],
@@ -48,11 +69,11 @@ export function ProductsActions(dispatch) {
 
   const updateProduct = useCallback(
     async (body, id) => {
-      console.log(id);
+      // console.log(id);
       if (!dispatch) return;
       dispatch({ type: "SET_LOADING" });
       try {
-        console.log(body, id);
+        // console.log(body, id);
         const data = await updateProductService(body, id);
         if (data) {
           dispatch({
@@ -74,11 +95,11 @@ export function ProductsActions(dispatch) {
 
   const addProduct = useCallback(
     async (body) => {
-      console.log(body);
+      // console.log(body);
       if (!dispatch) return;
       dispatch({ type: "SET_LOADING" });
       try {
-        console.log(body);
+        // console.log(body);
         const data = await addProductService(body);
         if (data) {
           dispatch({
@@ -99,5 +120,11 @@ export function ProductsActions(dispatch) {
   );
 
   // Return the actions so components can use them
-  return { getProducts, deleteProduct, updateProduct, addProduct };
+  return {
+    getProducts,
+    deleteProduct,
+    updateProduct,
+    addProduct,
+    getSpecificProduct,
+  };
 }

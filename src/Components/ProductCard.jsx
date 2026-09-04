@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 import { Trash2, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
 import defaultImage from "../assets/screen.png";
+import { useEffect, useState } from "react";
 export default function ProductCard({ product, handleDelete, index }) {
-  console.log(product);
+  const [previewSrc, setPreviewSrc] = useState("");
   const cardVariants = {
     hidden: {
       opacity: 0,
@@ -24,6 +25,23 @@ export default function ProductCard({ product, handleDelete, index }) {
       transition: { duration: 0.2 },
     },
   };
+  useEffect(() => {
+    console.log(product.image);
+    // Check if image is a File or Blob object
+    if (product.image instanceof Blob) {
+      const url = URL.createObjectURL(product.image);
+      setPreviewSrc(url);
+      console.log(url);
+      console.log(URL.revokeObjectURL(url));
+      // Clean up memory when product.image changes or component unmounts
+      return () => URL.revokeObjectURL(url);
+    }
+
+    // If it's already a standard URL string
+    if (typeof product.image === "string") {
+      setPreviewSrc(product.image);
+    }
+  }, [product.image]);
   return (
     <motion.div
       variants={cardVariants}
