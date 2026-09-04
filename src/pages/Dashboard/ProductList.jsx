@@ -150,19 +150,27 @@ export default function ProductList() {
   });
 
   // --- Safe Pagination Calculation ---
+  // 1. Calculate safe total pages
   const ITEMS_PER_PAGE = 6;
   const itemLength = Array.isArray(filteredProducts)
     ? filteredProducts.length
     : 0;
   const totalPages = Math.max(1, Math.ceil(itemLength / ITEMS_PER_PAGE));
 
-  // 2. Pass totalPages (guaranteed >= 1) to usePagination
+  // 2. Initialize Mantine usePagination
   const pagination = usePagination({
     total: totalPages,
     initialPage: 1,
   });
 
-  // Reset page when filters change
+  // FIX 1: Ensure active page adjusts automatically if totalPages shrinks after deletion
+  useEffect(() => {
+    if (pagination.active > totalPages) {
+      pagination.setPage(totalPages);
+    }
+  }, [totalPages, pagination.active]);
+
+  // Reset page when filters/search queries change
   useEffect(() => {
     pagination.setPage(1);
   }, [selectedCategory, selectedStock, searchQuery]);
