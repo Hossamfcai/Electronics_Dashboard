@@ -277,6 +277,7 @@ export default function EditProductModal({ isOpen, onClose }) {
                         ) : (
                           <img
                             src={form.values.image}
+                            loading="lazy"
                             alt="Product preview"
                             className="h-full w-full object-contain px-4 py-2"
                             onError={() => setImageError(true)}

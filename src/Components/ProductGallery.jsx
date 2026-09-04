@@ -11,6 +11,7 @@ export default function ProductGallery({ product }) {
       {/* Main Image */}
       <div className="flex h-105 items-center justify-center overflow-hidden rounded-lg bg-surface-container-low">
         <img
+          loading="lazy"
           src={product.image !== "" ? product.image : defaultImage}
           alt={product.name || "Product"}
           className="h-full w-full object-contain"

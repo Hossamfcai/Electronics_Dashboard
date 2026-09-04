@@ -57,6 +57,7 @@ export default function HeroSection() {
         className="absolute inset-0 z-0 pointer-events-none"
       >
         <img
+          loading="lazy"
           alt="Premium high-end electronics and hardware components"
           className="w-full h-full object-cover"
           src={heroPhoto}
