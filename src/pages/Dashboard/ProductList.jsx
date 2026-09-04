@@ -36,9 +36,14 @@ const itemVariants = {
 export default function ProductList() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStock, setSelectedStock] = useState("All");
-  const [searchQuery, setSearchQuery] = useState(""); // <-- Search State
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const { products, loading, error, productsState } = useProductState();
+  const {
+    products = [],
+    loading,
+    error,
+    productsState,
+  } = useProductState() || {};
   const { getProducts, deleteProduct } = useProductDispatch();
   const stockOptions = ["All", "In Stock", "Out of Stock"];
 
@@ -119,20 +124,17 @@ export default function ProductList() {
   ];
 
   // --- Filter Logic with Search Query ---
-  const filteredProducts = products?.filter((product) => {
-    // Category Condition
+  const filteredProducts = (products || []).filter((product) => {
     const matchesCategory =
       selectedCategory === "All" ||
       (selectedCategory === "No Category" && !product.category) ||
       product.category === selectedCategory;
 
-    // Stock Condition
     const matchesStock =
       selectedStock === "All" ||
       (selectedStock === "In Stock" && product.stock > 0) ||
       (selectedStock === "Out of Stock" && product.stock === 0);
 
-    // Search Query Condition (matches name, description, or category)
     const query = searchQuery.trim().toLowerCase();
     const matchesSearch =
       !query ||
@@ -385,21 +387,15 @@ export default function ProductList() {
       )}
 
       {/* Empty State */}
-      {productsState == "isEmpty" || filteredProducts.length == 0 ? (
+      {/* Empty State */}
+      {!loading && !error && (filteredProducts?.length || 0) === 0 && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
         >
-          {!error &&
-            !loading &&
-            filteredProducts &&
-            filteredProducts.length == 0 && (
-              <EmptyState isFilteredProductsEmpty={filteredProducts.length} />
-            )}
+          <EmptyState isFilteredProductsEmpty={filteredProducts?.length || 0} />
         </motion.div>
-      ) : (
-        ""
       )}
     </motion.div>
   );
