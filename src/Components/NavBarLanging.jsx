@@ -130,7 +130,7 @@ export default function NavBarLanding() {
                         {item}
                       </motion.a>
                     ))}
-                    <Link to={"/dashboard"}>
+                    <Link to={"/Dashboard"}>
                       <motion.div
                         variants={mobileItemVariants}
                         whileTap={{ scale: 0.98 }}
@@ -173,7 +173,7 @@ export default function NavBarLanding() {
           className="hidden md:flex items-center gap-4"
         >
           {" "}
-          <Link to={"/dashboard"}>
+          <Link to={"/Dashboard"}>
             <motion.div
               whileHover={{
                 scale: 1.05,

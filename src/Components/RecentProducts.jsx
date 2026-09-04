@@ -1,9 +1,4 @@
-import {
-  Armchair,
-  Headphones,
-  Laptop,
-  Package,
-} from "lucide-react";
+import { Armchair, Headphones, Laptop, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -34,9 +29,7 @@ const fallbackProducts = [
 export default function RecentProducts({ products = [] }) {
   const navigate = useNavigate();
   const displayProducts =
-    products.length > 0
-      ? products.slice(0, 3)
-      : fallbackProducts;
+    products.length > 0 ? products.slice(0, 6) : fallbackProducts;
 
   return (
     <motion.section
@@ -141,18 +134,14 @@ export default function RecentProducts({ products = [] }) {
                       </motion.div>
 
                       <span className="whitespace-nowrap text-xs font-semibold text-on-surface">
-                        {product.name ||
-                          product.title ||
-                          "Unnamed Product"}
+                        {product.name || product.title || "Unnamed Product"}
                       </span>
                     </motion.div>
                   </td>
 
                   {/* SKU */}
                   <td className="px-4 py-3 text-xs text-on-surface-variant">
-                    {product.sku ||
-                      product.SKU ||
-                      `PROD-${1000 + index}`}
+                    {product.sku || product.SKU || `PROD-${1000 + index}`}
                   </td>
 
                   {/* Category */}
@@ -164,7 +153,9 @@ export default function RecentProducts({ products = [] }) {
                   <td className="px-4 py-3">
                     <motion.button
                       type="button"
-                      onClick={() => navigate(`/Dashboard/ProductList/${product.id}`)}
+                      onClick={() =>
+                        navigate(`/Dashboard/ProductList/${product.id}`)
+                      }
                       className="text-xs font-semibold text-primary hover:underline"
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}

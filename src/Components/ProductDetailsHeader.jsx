@@ -3,54 +3,80 @@ import { Edit, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
-
-import productService from "../services/productService";
 import EditProductModal from "./EditProductModal";
+import { useProductDispatch, useProductState } from "../context/productContext";
 
-export default function ProductDetailsHeader({ product, onProductUpdated, onProductDeleted }) {
+export default function ProductDetailsHeader({ product }) {
   const navigate = useNavigate();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-  const productId = product?.id ?? product?._id;
+  const { deleteProduct } = useProductDispatch();
+  const { error } = useProductState();
 
   const handleDelete = async () => {
     const result = await Swal.fire({
-      title: "Delete Product?",
-      text: `Are you sure you want to delete "${product.name}"? This action cannot be undone.`,
+      title: "Delete Product",
+      text: `Are you sure you want to delete "${product.name}"?`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Delete Product",
       cancelButtonText: "Cancel",
-      confirmButtonColor: "#ba1a1a",
+      reverseButtons: true,
+      customClass: {
+        popup:
+          "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface",
+        title: "font-display text-on-surface font-bold text-2xl",
+        htmlContainer: "text-on-surface-variant text-sm",
+        confirmButton:
+          "bg-error text-on-error hover:bg-error/90 font-display font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm",
+        cancelButton:
+          "bg-surface-container hover:bg-surface-container-high text-on-surface font-display font-medium px-5 py-2.5 rounded-lg border border-outline-variant transition-colors",
+        actions: "gap-3",
+      },
+      buttonsStyling: false, // Disables default SweetAlert2 button styles
     });
 
-    if (!result.isConfirmed) return;
-
-    try {
-      await productService.deleteProduct(productId);
-
-      onProductDeleted?.();
-
-      await Swal.fire({
-        title: "Deleted!",
-        text: "Product has been deleted successfully.",
-        icon: "success",
-        confirmButtonColor: "#00685f",
-        timer: 1600,
-        timerProgressBar: true,
-      });
-
-      navigate("/Dashboard/ProductList", { replace: true });
-    } catch (error) {
-      console.error("Error deleting product:", error);
-
-      Swal.fire({
-        title: "Error",
-        text:
-          error.response?.data?.message ||
-          "Failed to delete the product.",
-        icon: "error",
-      });
+    if (result.isConfirmed) {
+      deleteProduct(product.id);
+      if (!error) {
+        await Swal.fire({
+          title: "Deleted!",
+          text: `"${product.name}" has been deleted successfully.`,
+          icon: "success",
+          iconColor: "var(--color-primary)",
+          timer: 800, // Closes after 2 seconds (2000ms)
+          timerProgressBar: true,
+          buttonsStyling: false,
+          customClass: {
+            popup:
+              "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface p-6 shadow-lg",
+            title: "font-display text-on-surface font-bold text-2xl mb-1",
+            htmlContainer: "text-on-surface-variant text-sm",
+            confirmButton:
+              "bg-primary text-on-primary hover:bg-primary/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
+          },
+        });
+        navigate("/Dashboard/ProductList");
+      } else {
+        await Swal.fire({
+          title: "Error!",
+          text:
+            typeof error === "string"
+              ? error
+              : "Something went wrong while deleting the product.",
+          icon: "error",
+          iconColor: "var(--color-error)",
+          confirmButtonText: "OK",
+          buttonsStyling: false,
+          customClass: {
+            popup:
+              "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface p-6 shadow-lg",
+            title: "font-display text-on-surface font-bold text-2xl mb-1",
+            htmlContainer: "text-on-surface-variant text-sm",
+            confirmButton:
+              "bg-error text-on-error hover:bg-error/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
+          },
+        });
+      }
     }
   };
 
@@ -110,11 +136,7 @@ export default function ProductDetailsHeader({ product, onProductUpdated, onProd
         product={product}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onSuccess={(updatedProduct) => {
-          onProductUpdated?.(updatedProduct);
-        }}
       />
     </>
   );
 }
-

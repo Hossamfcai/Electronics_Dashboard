@@ -1,12 +1,46 @@
-import { useContext, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Context } from "../../context/ContextApi.jsx";
+import { motion } from "framer-motion";
 import Swal from "sweetalert2";
+import { Plus, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { usePagination } from "@mantine/hooks";
+import {
+  useProductDispatch,
+  useProductState,
+} from "../../context/productContext.jsx";
+import ProductCard from "../../Components/ProductCard.jsx";
+import ProductCardSkeleton from "../../Components/ProductCardSkeleton.jsx";
+import EmptyState from "../../Components/EmptyState.jsx";
+import ErrorState from "../../Components/ErrorState.jsx";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: -15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" },
+  },
+};
 
 export default function ProductList() {
-  const { products, deleteProduct } = useContext(Context);
-
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedStock, setSelectedStock] = useState("All");
+  const [searchQuery, setSearchQuery] = useState(""); // <-- Search State
+
+  const { products, loading, error, productsState } = useProductState();
+  const { getProducts, deleteProduct } = useProductDispatch();
+  const stockOptions = ["All", "In Stock", "Out of Stock"];
 
   async function handleDelete(product) {
     const result = await Swal.fire({
@@ -17,24 +51,58 @@ export default function ProductList() {
       confirmButtonText: "Delete Product",
       cancelButtonText: "Cancel",
       reverseButtons: true,
+      customClass: {
+        popup:
+          "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface",
+        title: "font-display text-on-surface font-bold text-2xl",
+        htmlContainer: "text-on-surface-variant text-sm",
+        confirmButton:
+          "bg-error text-on-error hover:bg-error/90 font-display font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm",
+        cancelButton:
+          "bg-surface-container hover:bg-surface-container-high text-on-surface font-display font-medium px-5 py-2.5 rounded-lg border border-outline-variant transition-colors",
+        actions: "gap-3",
+      },
+      buttonsStyling: false,
     });
 
     if (result.isConfirmed) {
-      const success = await deleteProduct(product.id);
-
-      if (success) {
+      deleteProduct(product.id);
+      if (!error) {
         await Swal.fire({
           title: "Deleted!",
           text: `"${product.name}" has been deleted successfully.`,
           icon: "success",
+          iconColor: "var(--color-primary)",
           confirmButtonText: "OK",
+          buttonsStyling: false,
+          customClass: {
+            popup:
+              "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface p-6 shadow-lg",
+            title: "font-display text-on-surface font-bold text-2xl mb-1",
+            htmlContainer: "text-on-surface-variant text-sm",
+            confirmButton:
+              "bg-primary text-on-primary hover:bg-primary/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
+          },
         });
       } else {
         await Swal.fire({
           title: "Error!",
-          text: "Something went wrong while deleting the product.",
+          text:
+            typeof error === "string"
+              ? error
+              : "Something went wrong while deleting the product.",
           icon: "error",
+          iconColor: "var(--color-error)",
           confirmButtonText: "OK",
+          buttonsStyling: false,
+          customClass: {
+            popup:
+              "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface p-6 shadow-lg",
+            title: "font-display text-on-surface font-bold text-2xl mb-1",
+            htmlContainer: "text-on-surface-variant text-sm",
+            confirmButton:
+              "bg-error text-on-error hover:bg-error/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
+          },
         });
       }
     }
@@ -50,194 +118,289 @@ export default function ProductList() {
     "No Category",
   ];
 
-  const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : selectedCategory === "No Category"
-        ? products?.filter((product) => !product.category)
-        : products?.filter((product) => product.category === selectedCategory);
+  // --- Filter Logic with Search Query ---
+  const filteredProducts = products?.filter((product) => {
+    // Category Condition
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (selectedCategory === "No Category" && !product.category) ||
+      product.category === selectedCategory;
+
+    // Stock Condition
+    const matchesStock =
+      selectedStock === "All" ||
+      (selectedStock === "In Stock" && product.stock > 0) ||
+      (selectedStock === "Out of Stock" && product.stock === 0);
+
+    // Search Query Condition (matches name, description, or category)
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      product.name?.toLowerCase().includes(query) ||
+      product.description?.toLowerCase().includes(query) ||
+      product.category?.toLowerCase().includes(query);
+
+    return matchesCategory && matchesStock && matchesSearch;
+  });
+
+  // --- Pagination Logic ---
+  const ITEMS_PER_PAGE = 6;
+  const totalPages = Math.ceil(
+    (filteredProducts?.length || 0) / ITEMS_PER_PAGE,
+  );
+
+  const pagination = usePagination({
+    total: totalPages || 1,
+    initialPage: 1,
+  });
+
+  // Reset to page 1 whenever filters or search query change
+  // Reset to page 1 whenever filters or search query change
+  useEffect(() => {
+    pagination.setPage(1);
+  }, [selectedCategory, selectedStock, searchQuery]);
+
+  // Scroll to top whenever active page changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [pagination.active]);
+
+  // Paginated slice for ProductCard rendering
+  const paginatedProducts = filteredProducts?.slice(
+    (pagination.active - 1) * ITEMS_PER_PAGE,
+    pagination.active * ITEMS_PER_PAGE,
+  );
+
+  useEffect(() => {
+    getProducts();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-surface px-6 py-8 font-body">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="min-h-screen bg-surface px-6 py-8 font-body"
+    >
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <motion.div
+        variants={itemVariants}
+        className="mb-8 flex items-center justify-between"
+      >
         <div>
           <h1 className="font-display text-headline-lg text-on-surface">
             Premium Inventory
           </h1>
 
-          <p className="mt-1 text-body-sm text-on-surface-variant">
+          <p className="mt-1 text-body-sm text-on-surface-variant mb-5">
             Manage your products, pricing, and stock information.
           </p>
+          {/* <motion.span
+            key={products?.length}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="rounded-full bg-primary-fixed px-4 py-2 text-label-sm text-on-primary-fixed"
+          >
+            {products?.length || 0} Products
+          </motion.span> */}
         </div>
 
-        <span className="rounded-full bg-primary-fixed px-4 py-2 text-label-sm text-on-primary-fixed">
-          {products?.length || 0} Products
-        </span>
-      </div>
+        <Link
+          to="/Dashboard/addproduct"
+          className="flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-label-lg text-on-primary transition hover:bg-primary-container whitespace-nowrap w-full sm:w-auto"
+        >
+          <Plus size={18} /> Add New Product
+        </Link>
+      </motion.div>
 
       {/* Products Toolbar */}
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        {/* Category Sort */}
-        <div className="flex items-center gap-3">
-          <label
-            htmlFor="category"
-            className="text-label-lg text-on-surface-variant"
-          >
-            Sort by:
-          </label>
-
-          <select
-            id="category"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="rounded-md border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-body-sm text-on-surface outline-none focus:border-primary"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+      <motion.div
+        variants={itemVariants}
+        className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"
+      >
+        {/* Search Bar Component */}
+        <div className="relative w-full lg:max-w-xs">
+          <Search
+            size={18}
+            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none"
+          />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-md border border-outline-variant bg-surface-container-lowest pl-10 pr-9 py-2.5 text-body-sm text-on-surface placeholder:text-on-surface-variant/60 outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer"
+              aria-label="Clear search"
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
 
-        {/* Add Product */}
-        <Link
-          to="/dashboard/addproduct"
-          className="flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-label-lg text-on-primary transition hover:bg-primary-container"
-        >
-          <i className="fa-solid fa-plus"></i>
-          Add New Product
-        </Link>
-      </div>
+        {/* Filters & Actions Group */}
+        <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto lg:justify-end">
+          {/* Category Sort */}
+          <div className="flex items-center gap-3">
+            <label
+              htmlFor="category"
+              className="text-label-lg text-on-surface-variant whitespace-nowrap"
+            >
+              Sort by:
+            </label>
+
+            <select
+              id="category"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="rounded-md border border-outline-variant bg-surface-container-lowest px-4 py-2.5 text-body-sm text-on-surface outline-none focus:border-primary cursor-pointer"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Stock Filter Pills */}
+          <div className="flex items-center gap-2">
+            <span className="text-label-lg text-on-surface-variant mr-1 hidden sm:inline">
+              Stock:
+            </span>
+            {stockOptions.map((option) => {
+              const isActive = selectedStock === option;
+              return (
+                <button
+                  key={option}
+                  onClick={() => setSelectedStock(option)}
+                  className={`relative rounded-full px-4 py-2.5 text-label-sm transition-colors duration-200 cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-on-primary shadow-sm font-medium"
+                      : "bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface border border-outline-variant"
+                  }`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Add Product Button */}
+        </div>
+      </motion.div>
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {filteredProducts?.map((product) => (
-          <div
-            key={product.id}
-            className={`overflow-hidden rounded-lg shadow-sm ring-1 transition-all duration-300 hover:-translate-y-3 hover:shadow-lg ${
-              product.stock > 0
-                ? "bg-surface-container-lowest ring-outline-variant/40"
-                : "bg-error-container/30 ring-error/40"
-            }`}
-          >
-            {/* Image */}
-            <div className="h-52 w-full overflow-hidden bg-surface-container">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            {/* Card Content */}
-            <div className="p-5">
-              {/* Category + Stock */}
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-label-sm uppercase text-outline">
-                  {product.category}
-                </span>
-
-                <span
-                  className={`rounded-full px-3 py-1 text-label-sm ${
-                    product.stock > 0
-                      ? "bg-primary-fixed text-on-primary-fixed"
-                      : "bg-error-container text-on-error-container"
-                  }`}
-                >
-                  {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                </span>
-              </div>
-
-              {/* Product Name */}
-              <h2 className="font-display text-headline-md text-on-surface">
-                {product.name}
-              </h2>
-
-              {/* Description */}
-              <p className="mt-2 line-clamp-2 text-body-sm text-on-surface-variant">
-                {product.description}
-              </p>
-
-              {/* Price + Stock */}
-              <div className="mt-5 grid grid-cols-2 gap-4 border-y border-outline-variant/50 py-4">
-                <div>
-                  <span className="text-label-sm text-outline">PRICE</span>
-
-                  <p className="mt-1 font-display text-xl font-bold text-primary">
-                    ${product.price}
-                  </p>
-                </div>
-
-                <div>
-                  <span className="text-label-sm text-outline">STOCK</span>
-
-                  <p className="mt-1 font-display text-xl font-bold text-on-surface">
-                    {product.stock}
-                  </p>
-                </div>
-              </div>
-
-              {/* Created At */}
-              <div className="mt-4 flex items-center gap-2 text-body-sm text-outline">
-                <i className="fa-regular fa-calendar"></i>
-
-                <span>
-                  Created at {new Date(product.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-
-              {/* Actions */}
-              <div className="mt-4 flex items-center gap-2">
-                {/* Edit */}
-                <Link
-                  to={`/dashboard/editproduct/${product.id}`}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-primary transition-all duration-200 hover:scale-105 hover:bg-primary hover:text-on-primary"
-                >
-                  <i className="fa-solid fa-pen text-sm"></i>
-                </Link>
-
-                {/* Delete */}
-                <button
-                  type="button"
-                  onClick={() => handleDelete(product)}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-outline-variant bg-surface-container-low text-error transition-all duration-200 hover:bg-error hover:text-on-error hover:scale-105"
-                >
-                  <i className="fa-solid fa-trash text-sm"></i>
-                </button>
-              </div>
-
-              {/* View Details */}
-              <Link
-                to={`/dashboard/productdetails/${product.id}`}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-label-lg text-on-primary transition hover:bg-primary-container"
+        {loading
+          ? Array.from({ length: 6 }).map((_, index) => (
+              <motion.div
+                key={`skeleton-${index}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
               >
-                View Product Details
-                <i className="fa-solid fa-arrow-right text-xs"></i>
-              </Link>
-            </div>
-          </div>
-        ))}
+                <ProductCardSkeleton />
+              </motion.div>
+            ))
+          : paginatedProducts?.map((product, i) => (
+              <ProductCard
+                key={product.id}
+                index={i}
+                product={product}
+                handleDelete={handleDelete}
+              />
+            ))}
       </div>
 
-      {/* Empty State */}
-      {(!products || products.length === 0) && (
-        <div className="flex min-h-80 flex-col items-center justify-center text-center">
-          <i className="fa-solid fa-box-open text-4xl text-outline"></i>
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <motion.div
+          variants={itemVariants}
+          className="mt-10 flex items-center justify-center gap-2"
+        >
+          <button
+            onClick={pagination.previous}
+            disabled={pagination.active === 1}
+            className="flex items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest p-2.5 text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface disabled:opacity-40 disabled:hover:bg-surface-container-lowest cursor-pointer disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={18} />
+          </button>
 
-          <h2 className="mt-4 font-display text-headline-md text-on-surface">
-            No Products Found
-          </h2>
+          {pagination.range.map((page, index) => {
+            if (page === "dots") {
+              return (
+                <span
+                  key={`dots-${index}`}
+                  className="px-3 py-2 text-label-lg text-on-surface-variant"
+                >
+                  ...
+                </span>
+              );
+            }
 
-          <p className="mt-1 text-body-sm text-on-surface-variant">
-            There are no products to display.
-          </p>
-        </div>
+            const isCurrent = page === pagination.active;
+            return (
+              <button
+                key={`page-${page}`}
+                onClick={() => pagination.setPage(page)}
+                className={`min-w-[40px] h-[40px] rounded-lg text-label-lg font-medium transition cursor-pointer ${
+                  isCurrent
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface"
+                }`}
+              >
+                {page}
+              </button>
+            );
+          })}
+
+          <button
+            onClick={pagination.next}
+            disabled={pagination.active === totalPages}
+            className="flex items-center justify-center rounded-lg border border-outline-variant bg-surface-container-lowest p-2.5 text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface disabled:opacity-40 disabled:hover:bg-surface-container-lowest cursor-pointer disabled:cursor-not-allowed"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </motion.div>
       )}
-    </div>
+
+      {/* Error State */}
+      {!loading && error && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+        >
+          <ErrorState />
+        </motion.div>
+      )}
+
+      {/* Empty State */}
+      {productsState == "isEmpty" || filteredProducts.length == 0 ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+        >
+          {!error &&
+            !loading &&
+            filteredProducts &&
+            filteredProducts.length == 0 && (
+              <EmptyState isFilteredProductsEmpty={filteredProducts.length} />
+            )}
+        </motion.div>
+      ) : (
+        ""
+      )}
+    </motion.div>
   );
 }
-
-
-

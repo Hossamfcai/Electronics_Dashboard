@@ -1,151 +1,105 @@
 import { useEffect, useState } from "react";
+import { useForm } from "@mantine/form";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2, X } from "lucide-react";
+import { ImageOff, Loader2, X } from "lucide-react";
 import Swal from "sweetalert2";
-import productService from "../services/productService";
+import { useProductDispatch, useProductState } from "../context/productContext";
+import { useParams } from "react-router-dom";
 
-const getProductId = (product) => product?.id ?? product?._id;
+export default function EditProductModal({ isOpen, onClose }) {
+  const { id } = useParams();
+  const { specificProduct, loading } = useProductState();
+  const { updateProduct, getSpecificProduct } = useProductDispatch();
+  const [imageError, setImageError] = useState(false);
 
-const getInitialForm = (product) => ({
-  name: product?.name ?? "",
-  category: product?.category ?? "",
-  price: product?.price ?? "",
-  stock: product?.stock ?? "",
-  description: product?.description ?? "",
-});
-
-export default function EditProductModal({
-  product,
-  isOpen,
-  onClose,
-  onSuccess,
-}) {
-  const [formData, setFormData] = useState(getInitialForm(product));
-  const [saving, setSaving] = useState(false);
-
-  // Always load the selected product into the form when the modal opens
-  // or when another product is selected.
-  useEffect(() => {
-    if (isOpen && product) {
-      setFormData(getInitialForm(product));
-    }
-  }, [isOpen, product]);
+  const form = useForm({
+    initialValues: {
+      name: "",
+      category: "",
+      price: 0,
+      stock: 0,
+      image: "",
+      description: "",
+    },
+    validate: {
+      name: (value) => (value.trim().length < 2 ? "Name is required" : null),
+      price: (value) => (value < 0 ? "Price must be non-negative" : null),
+      stock: (value) => (value < 0 ? "Stock cannot be negative" : null),
+    },
+  });
 
   useEffect(() => {
-    if (!isOpen) return undefined;
-
-    const handleEscape = (event) => {
-      if (event.key === "Escape" && !saving) {
-        onClose();
-      }
-    };
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [isOpen, saving, onClose]);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((previous) => ({ ...previous, [name]: value }));
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (saving) return;
-
-    const productId = getProductId(product);
-    const price = Number(formData.price);
-    const stock = Number(formData.stock);
-
-    if (!productId) {
-      await Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Product ID is missing.",
-      });
-      return;
+    if (isOpen && id && !specificProduct) {
+      getSpecificProduct(id);
     }
+  }, [isOpen, id, specificProduct, getSpecificProduct]);
 
-    if (!formData.name.trim()) {
-      await Swal.fire({
-        icon: "error",
-        title: "Missing name",
-        text: "Product name is required.",
+  useEffect(() => {
+    if (isOpen && specificProduct) {
+      form.setValues({
+        name: specificProduct.name || "",
+        category: specificProduct.category || "",
+        price: specificProduct.price || 0,
+        stock: specificProduct.stock || 0,
+        image: specificProduct.image || "",
+        description: specificProduct.description || "",
       });
-      return;
+      setImageError(false);
     }
+  }, [isOpen, specificProduct]);
 
-    if (!Number.isFinite(price) || price < 0) {
+  const onSubmit = async (values) => {
+    const targetId = specificProduct?.id || id;
+    const response = await updateProduct(values, targetId);
+
+    if (response) {
       await Swal.fire({
-        icon: "error",
-        title: "Invalid price",
-        text: "Price must be a valid non-negative number.",
-      });
-      return;
-    }
-
-    if (!Number.isInteger(stock) || stock < 0) {
-      await Swal.fire({
-        icon: "error",
-        title: "Invalid stock",
-        text: "Stock must be a non-negative whole number.",
-      });
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      const response = await productService.updateProduct(productId, {
-        name: formData.name.trim(),
-        category: formData.category.trim(),
-        price,
-        stock,
-        description: formData.description.trim(),
-      });
-
-      const updatedProduct = response?.data ?? response;
-
-      onSuccess?.(updatedProduct);
-      onClose();
-
-      await Swal.fire({
+        title: "Product Updated!",
+        text: `"${specificProduct?.name || values.name}" has been updated successfully.`,
         icon: "success",
-        title: "Product Updated",
-        text: "The product has been updated successfully.",
-        confirmButtonColor: "#00685f",
-        timer: 1600,
+        iconColor: "var(--color-primary)",
+        confirmButtonText: "OK",
+        timer: 2000,
         timerProgressBar: true,
+        heightAuto: false,
+        buttonsStyling: false,
+        customClass: {
+          popup:
+            "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface p-6 shadow-lg",
+          title: "font-display text-on-surface font-bold text-2xl mb-1",
+          htmlContainer: "text-on-surface-variant text-sm",
+          confirmButton:
+            "bg-primary text-on-primary hover:bg-primary/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
+        },
       });
-    } catch (error) {
-      console.error("Error updating product:", error);
-
+    } else {
       await Swal.fire({
+        title: "Error!",
+        text: "Something went wrong while updating the product.",
         icon: "error",
-        title: "Update Failed",
-        text:
-          error.response?.data?.message ||
-          "Failed to update the product.",
-        confirmButtonColor: "#ba1a1a",
+        iconColor: "var(--color-error)",
+        confirmButtonText: "OK",
+        timer: 3000,
+        timerProgressBar: true,
+        heightAuto: false,
+        buttonsStyling: false,
+        customClass: {
+          popup:
+            "bg-surface-container-lowest font-body rounded-xl border border-outline-variant text-on-surface p-6 shadow-lg",
+          title: "font-display text-on-surface font-bold text-2xl mb-1",
+          htmlContainer: "text-on-surface-variant text-sm",
+          confirmButton:
+            "bg-error text-on-error hover:bg-error/90 font-display font-medium px-6 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer",
+        },
       });
-    } finally {
-      setSaving(false);
     }
+    onClose();
   };
-
-  if (typeof document === "undefined") return null;
 
   return createPortal(
     <AnimatePresence>
-      {isOpen && product && (
+      {isOpen && (
         <motion.div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           role="dialog"
@@ -160,7 +114,7 @@ export default function EditProductModal({
             type="button"
             aria-label="Close edit product modal"
             className="absolute inset-0 h-full w-full cursor-default border-0 bg-black/45 backdrop-blur-[2px]"
-            onClick={() => !saving && onClose()}
+            onClick={() => onClose()}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -191,7 +145,6 @@ export default function EditProductModal({
               <button
                 type="button"
                 onClick={onClose}
-                disabled={saving}
                 aria-label="Close"
                 className="rounded-md p-2 text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface disabled:opacity-50"
               >
@@ -199,121 +152,177 @@ export default function EditProductModal({
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="max-h-[65vh] space-y-5 overflow-y-auto px-6 py-6">
-                <div>
-                  <label
-                    htmlFor="edit-product-name"
-                    className="mb-2 block text-body-sm font-semibold text-on-surface"
-                  >
-                    Product Name
-                  </label>
-                  <input
-                    id="edit-product-name"
-                    name="name"
-                    type="text"
-                    value={formData.name}
-                    onChange={handleChange}
-                    autoFocus
-                    className="w-full rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="edit-product-category"
-                    className="mb-2 block text-body-sm font-semibold text-on-surface"
-                  >
-                    Category
-                  </label>
-                  <input
-                    id="edit-product-category"
-                    name="category"
-                    type="text"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {loading || !specificProduct ? (
+              <div className="flex h-64 items-center justify-center">
+                <Loader2 size={32} className="animate-spin text-primary" />
+              </div>
+            ) : (
+              <form onSubmit={form.onSubmit((values) => onSubmit(values))}>
+                <div className="max-h-[65vh] space-y-5 overflow-y-auto px-6 py-6">
+                  {/* Product Name */}
                   <div>
                     <label
-                      htmlFor="edit-product-price"
+                      htmlFor="edit-product-name"
                       className="mb-2 block text-body-sm font-semibold text-on-surface"
                     >
-                      Price ($)
+                      Product Name
                     </label>
                     <input
-                      id="edit-product-price"
-                      name="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={handleChange}
+                      id="edit-product-name"
+                      type="text"
+                      autoFocus
                       className="w-full rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                      {...form.getInputProps("name")}
+                    />
+                    {form.errors.name && (
+                      <span className="mt-1 block text-xs text-red-500">
+                        {form.errors.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Category */}
+                  <div>
+                    <label
+                      htmlFor="edit-product-category"
+                      className="mb-2 block text-body-sm font-semibold text-on-surface"
+                    >
+                      Category
+                    </label>
+                    <input
+                      id="edit-product-category"
+                      type="text"
+                      className="w-full rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                      {...form.getInputProps("category")}
                     />
                   </div>
 
+                  {/* Price & Stock Row */}
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    {/* Price */}
+                    <div>
+                      <label
+                        htmlFor="edit-product-price"
+                        className="mb-2 block text-body-sm font-semibold text-on-surface"
+                      >
+                        Price ($)
+                      </label>
+                      <input
+                        id="edit-product-price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        className="w-full rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                        {...form.getInputProps("price")}
+                      />
+                      {form.errors.price && (
+                        <span className="mt-1 block text-xs text-red-500">
+                          {form.errors.price}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Stock */}
+                    <div>
+                      <label
+                        htmlFor="edit-product-stock"
+                        className="mb-2 block text-body-sm font-semibold text-on-surface"
+                      >
+                        Stock
+                      </label>
+                      <input
+                        id="edit-product-stock"
+                        type="number"
+                        min="0"
+                        step="1"
+                        className="w-full rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                        {...form.getInputProps("stock")}
+                      />
+                      {form.errors.stock && (
+                        <span className="mt-1 block text-xs text-red-500">
+                          {form.errors.stock}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Image URL Input Field */}
                   <div>
                     <label
-                      htmlFor="edit-product-stock"
+                      htmlFor="edit-product-image"
                       className="mb-2 block text-body-sm font-semibold text-on-surface"
                     >
-                      Stock
+                      Image URL
                     </label>
                     <input
-                      id="edit-product-stock"
-                      name="stock"
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={formData.stock}
-                      onChange={handleChange}
+                      id="edit-product-image"
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
                       className="w-full rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                      {...form.getInputProps("image")}
+                      onChange={(e) => {
+                        form.getInputProps("image").onChange(e);
+                        setImageError(false);
+                      }}
+                    />
+
+                    {/* Image Preview Window */}
+                    {form.values.image && (
+                      <div className="relative mt-3 flex h-40 w-full items-center justify-center overflow-hidden rounded-md border border-outline-variant bg-surface-container-low">
+                        {imageError ? (
+                          <div className="flex flex-col items-center gap-1 text-on-surface-variant">
+                            <ImageOff size={24} />
+                            <span className="text-xs">Invalid image URL</span>
+                          </div>
+                        ) : (
+                          <img
+                            src={form.values.image}
+                            alt="Product preview"
+                            className="h-full w-full object-contain px-4 py-2"
+                            onError={() => setImageError(true)}
+                          />
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label
+                      htmlFor="edit-product-description"
+                      className="mb-2 block text-body-sm font-semibold text-on-surface"
+                    >
+                      Description
+                    </label>
+                    <textarea
+                      id="edit-product-description"
+                      rows="4"
+                      className="w-full resize-none rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
+                      {...form.getInputProps("description")}
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="edit-product-description"
-                    className="mb-2 block text-body-sm font-semibold text-on-surface"
+                {/* Buttons */}
+                <div className="flex flex-col-reverse gap-3 border-t border-outline-variant bg-surface-container-low px-6 py-4 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-md border border-outline-variant px-5 py-2.5 text-body-sm font-semibold text-on-surface transition hover:bg-surface-container-high disabled:opacity-50"
                   >
-                    Description
-                  </label>
-                  <textarea
-                    id="edit-product-description"
-                    name="description"
-                    rows="4"
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="w-full resize-none rounded-md border border-outline-variant bg-surface-container-low px-4 py-3 text-body-md text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
-                  />
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-bold text-on-primary transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading && <Loader2 size={17} className="animate-spin" />}
+                    {loading ? "Saving..." : "Save Changes"}
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex flex-col-reverse gap-3 border-t border-outline-variant bg-surface-container-low px-6 py-4 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  disabled={saving}
-                  className="rounded-md border border-outline-variant px-5 py-2.5 text-body-sm font-semibold text-on-surface transition hover:bg-surface-container-high disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-2.5 text-body-sm font-bold text-on-primary transition hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {saving && <Loader2 size={17} className="animate-spin" />}
-                  {saving ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </form>
+              </form>
+            )}
           </motion.div>
         </motion.div>
       )}
