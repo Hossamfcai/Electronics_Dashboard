@@ -14,16 +14,17 @@ export function productReducer(state, action) {
     case "SET_ERROR":
       return { ...state, loading: false, error: true };
 
-    case "FETCH_SUCCESS":
+    case "FETCH_SUCCESS": {
+      const payload = Array.isArray(action.payload) ? action.payload : [];
       return {
         ...state,
-        productsState: action.payload.length == 0 ? "isEmpty" : "",
+        productsState: payload.length === 0 ? "isEmpty" : "",
         loading: false,
-        products: action.payload,
+        products: payload,
         error: false,
         specificProduct: {},
       };
-
+    }
     case "FETCH_PRODUCT_SUCCESS":
       return {
         ...state,
